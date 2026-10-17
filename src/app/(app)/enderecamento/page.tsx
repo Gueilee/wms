@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { Box } from "lucide-react";
 import { useWmsStore } from "@/store/useWmsStore";
 import { PageHeader, Card } from "@/components/ui/Card";
 import { RuaBlock } from "@/components/warehouse/RuaBlock";
@@ -22,16 +24,24 @@ export default function EnderecamentoPage() {
         titulo="Mapa de endereçamento"
         descricao={`Réplica do layout físico real do armazém — padrão RUA.ALTURA.POSIÇÃO, 9 ruas, ${ocupacao.total} posições.`}
         acoes={
-          <div className="flex items-center gap-3 text-xs text-text-muted">
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-[3px] bg-brand-bronze-500" /> Ocupado
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-[3px] bg-surface-muted border border-dashed border-border" /> Livre
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded-[3px] bg-status-blocked/80" /> Bloqueado
-            </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 text-xs text-text-muted">
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-[3px] bg-brand-bronze-500" /> Ocupado
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-[3px] bg-surface-muted border border-dashed border-border" /> Livre
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-[3px] bg-status-blocked/80" /> Bloqueado
+              </span>
+            </div>
+            <Link
+              href="/mapa-3d"
+              className="flex items-center gap-1.5 rounded-(--radius-md) bg-brand-green-700 text-white text-xs font-semibold px-3 py-2 hover:bg-brand-green-600 transition-colors"
+            >
+              <Box size={14} /> Ver em 3D
+            </Link>
           </div>
         }
       />

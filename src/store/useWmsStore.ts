@@ -147,6 +147,9 @@ export const useWmsStore = create<WmsStore>()(
             return { ...p, itens: itensPedido, status: completo ? ("separado" as StatusPedido) : p.status };
           });
 
+          const itemAtual = s.itens.find((i) => i.id === itemId);
+          const localizacaoOrigemId = itemAtual?.localizacaoPrincipalId;
+
           const itens = s.itens.map((i) =>
             i.id === itemId ? { ...i, saldoDisponivel: Math.max(0, i.saldoDisponivel - quantidade) } : i
           );
@@ -158,7 +161,7 @@ export const useWmsStore = create<WmsStore>()(
           );
 
           const movimentos = [...s.movimentos];
-          logMovimento(movimentos, "picking", itemId, quantidade, { referencia: pedidoId });
+          logMovimento(movimentos, "picking", itemId, quantidade, { referencia: pedidoId, localizacaoOrigemId });
 
           return { pedidos, itens, localizacoes, movimentos };
         }),
