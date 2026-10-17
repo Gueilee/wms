@@ -110,6 +110,7 @@ export interface Pedido {
   dataCriacao: string;
   dataPrevista: string;
   transportadora?: string;
+  notaFiscalSaidaId?: string;
 }
 
 export type TipoMovimento =
@@ -171,6 +172,33 @@ export interface RecebimentoPendente {
   fornecedorOuProducao: string;
   itens: { itemId: string; quantidadeEsperada: number }[];
   dataPrevista: string;
+  notaFiscalId?: string;
+}
+
+export type TipoNotaFiscal = "entrada" | "saida";
+
+export interface ItemNotaFiscal {
+  itemId?: string;
+  descricao: string;
+  ncm: string;
+  cfop: string;
+  quantidade: number;
+  valorUnitario: number;
+}
+
+export interface NotaFiscal {
+  id: string;
+  tipo: TipoNotaFiscal;
+  numero: string;
+  serie: string;
+  chaveAcesso: string;
+  dataEmissao: string;
+  cnpjEmitente: string;
+  nomeEmitente: string;
+  cnpjDestinatario: string;
+  nomeDestinatario: string;
+  valorTotal: number;
+  itens: ItemNotaFiscal[];
 }
 
 export interface MensagemCopiloto {

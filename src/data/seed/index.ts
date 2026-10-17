@@ -1,4 +1,4 @@
-import type { ContagemInventario, Item, Localizacao, Lote, MovimentoEstoque, Pedido, RecebimentoPendente, Cliche, Cliente } from "@/types";
+import type { ContagemInventario, Item, Localizacao, Lote, MovimentoEstoque, NotaFiscal, Pedido, RecebimentoPendente, Cliche, Cliente } from "@/types";
 import { CLIENTES } from "./clients";
 import { CLICHES, ITENS } from "./catalog";
 import { buildLayout } from "./layout";
@@ -15,6 +15,7 @@ export interface EstadoWms {
   clientes: Cliente[];
   cliches: Cliche[];
   recebimentosPendentes: RecebimentoPendente[];
+  notasFiscais: NotaFiscal[];
   contagens: ContagemInventario[];
   movimentos: MovimentoEstoque[];
 }
@@ -29,7 +30,7 @@ export function criarEstadoInicial(): EstadoWms {
 
   const lotes = construirLotes(itens);
   const pedidos = construirPedidos(itens);
-  const recebimentosPendentes = construirRecebimentosPendentes(itens);
+  const { recebimentos: recebimentosPendentes, notasFiscais } = construirRecebimentosPendentes(itens);
 
   return {
     itens,
@@ -39,6 +40,7 @@ export function criarEstadoInicial(): EstadoWms {
     clientes: CLIENTES,
     cliches: CLICHES,
     recebimentosPendentes,
+    notasFiscais,
     contagens: [],
     movimentos: [],
   };

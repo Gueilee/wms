@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ClipboardList, ScanBarcode, PackageOpen, Tag, MapPin } from "lucide-react";
+import { ClipboardList, ScanBarcode, PackageOpen, Tag, MapPin, PlugZap } from "lucide-react";
 import { useWmsStore } from "@/store/useWmsStore";
 import { PageHeader, Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -12,7 +12,7 @@ import { gerarConteudoGs1 } from "@/lib/gs1";
 import { formatarNumero } from "@/lib/format";
 
 export default function SeparacaoPage() {
-  const { pedidos, itens, localizacoes, iniciarSeparacao, confirmarPick, embalarPedido } = useWmsStore();
+  const { pedidos, itens, localizacoes, iniciarSeparacao, confirmarPick, embalarPedido, simularNovoPedido } = useWmsStore();
   const [etiquetaAberta, setEtiquetaAberta] = useState<string | null>(null);
 
   const emAndamento = pedidos.filter((p) => p.status !== "expedido");
@@ -22,7 +22,18 @@ export default function SeparacaoPage() {
       <PageHeader
         titulo="Separação & Packing"
         descricao="Picking guiado por pedido, com baixa automática de estoque e geração de etiqueta GS1-128 no empacotamento."
+        acoes={
+          <button
+            onClick={simularNovoPedido}
+            className="flex items-center gap-2 rounded-(--radius-md) bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer hover:bg-brand-green-600 transition-colors"
+          >
+            <PlugZap size={14} /> Simular novo pedido recebido
+          </button>
+        }
       />
+      <p className="text-[11px] text-text-faint -mt-4 mb-4">
+        Em produção, este pedido chegaria automaticamente pela API aberta da Girou (integração com o ERP/e-commerce do cliente) — aqui simulamos a chegada para fins de demonstração.
+      </p>
 
       <div className="flex flex-col gap-4">
         {emAndamento.map((pedido) => {

@@ -8,11 +8,15 @@ import type {
   Item,
   Localizacao,
   MensagemCopiloto,
+  Pedido,
   PerfilUsuario,
+  RecebimentoPendente,
   StatusPedido,
 } from "@/types";
 import { criarEstadoInicial, type EstadoWms } from "@/data/seed";
 import { RUAS_ORDEM } from "@/data/seed/layout";
+import { CLIENTES } from "@/data/seed/clients";
+import { gerarNotaFiscalEntrada, gerarNotaFiscalSaida } from "@/lib/fiscal";
 
 interface WmsStore extends EstadoWms {
   perfil: PerfilUsuario;
@@ -25,11 +29,13 @@ interface WmsStore extends EstadoWms {
 
   sugerirEndereco: (itemId: string) => Localizacao | undefined;
   confirmarPutaway: (recebimentoId: string, itemId: string, quantidade: number, localizacaoId: string) => void;
+  simularChegadaNfe: () => void;
 
   iniciarSeparacao: (pedidoId: string) => void;
   confirmarPick: (pedidoId: string, itemId: string, quantidade: number) => void;
   embalarPedido: (pedidoId: string) => void;
   expedirPedido: (pedidoId: string, transportadora: string) => void;
+  simularNovoPedido: () => void;
 
   gerarContagem: (classe?: ClasseAbc, quantidade?: number) => void;
   registrarContagem: (contagemId: string, saldoContado: number) => void;
@@ -129,6 +135,24 @@ export const useWmsStore = create<WmsStore>()(
           return { itens, localizacoes, recebimentosPendentes, movimentos };
         }),
 
+      simularChegadaNfe: () =>
+        set((s) => {
+          const candidatos = s.itens.filter((i) => i.categoria !== "Ferramental" && i.modeloArte !== "personalizado");
+          const { nota, itensEscolhidos } = gerarNotaFiscalEntrada(candidatos);
+          const recebimento: RecebimentoPendente = {
+            id: `receb-${Date.now()}`,
+            numero: `REC-${4470 + Math.floor(Math.random() * 900)}`,
+            fornecedorOuProducao: nota.nomeEmitente,
+            itens: itensEscolhidos.map(({ item, quantidade }) => ({ itemId: item.id, quantidadeEsperada: quantidade })),
+            dataPrevista: new Date().toISOString().slice(0, 10),
+            notaFiscalId: nota.id,
+          };
+          return {
+            notasFiscais: [nota, ...s.notasFiscais],
+            recebimentosPendentes: [recebimento, ...s.recebimentosPendentes],
+          };
+        }),
+
       iniciarSeparacao: (pedidoId) =>
         set((s) => ({
           pedidos: s.pedidos.map((p) => (p.id === pedidoId ? { ...p, status: "separando" as StatusPedido } : p)),
@@ -182,12 +206,57 @@ export const useWmsStore = create<WmsStore>()(
           const movimentos = [...s.movimentos];
           const pedido = s.pedidos.find((p) => p.id === pedidoId);
           pedido?.itens.forEach((it) => logMovimento(movimentos, "expedicao", it.itemId, it.quantidade, { referencia: pedidoId }));
+
+          let notasFiscais = s.notasFiscais;
+          let notaFiscalSaidaId: string | undefined;
+          const cliente = pedido ? s.clientes.find((c) => c.id === pedido.clienteId) : undefined;
+          if (pedido && cliente) {
+            const nota = gerarNotaFiscalSaida(pedido, s.itens, cliente);
+            notasFiscais = [nota, ...s.notasFiscais];
+            notaFiscalSaidaId = nota.id;
+          }
+
           return {
             pedidos: s.pedidos.map((p) =>
-              p.id === pedidoId ? { ...p, status: "expedido" as StatusPedido, transportadora } : p
+              p.id === pedidoId ? { ...p, status: "expedido" as StatusPedido, transportadora, notaFiscalSaidaId } : p
             ),
             movimentos,
+            notasFiscais,
           };
+        }),
+
+      simularNovoPedido: () =>
+        set((s) => {
+          const cliente = CLIENTES[Math.floor(Math.random() * CLIENTES.length)];
+          const personalizados = s.itens.filter((i) => i.modeloArte === "personalizado" && i.clienteId === cliente.id);
+          const padroes = s.itens.filter((i) => i.modeloArte !== "personalizado" && i.categoria !== "Ferramental");
+          const candidatos = [
+            personalizados[0],
+            padroes[Math.floor(Math.random() * padroes.length)],
+            padroes[Math.floor(Math.random() * padroes.length)],
+          ].filter((item, i, arr): item is Item => Boolean(item) && arr.findIndex((x) => x?.id === item.id) === i);
+
+          const itensPedido = candidatos.slice(0, 3).map((item) => ({
+            itemId: item.id,
+            quantidade: Math.max(2, Math.round(2 + Math.random() * 10)),
+            quantidadeSeparada: 0,
+          }));
+
+          const hoje = new Date();
+          const prevista = new Date(hoje);
+          prevista.setDate(prevista.getDate() + 2 + Math.floor(Math.random() * 3));
+
+          const novoPedido: Pedido = {
+            id: `pedido-${Date.now()}`,
+            numero: `PED-${2026100 + Math.floor(Math.random() * 900)}`,
+            clienteId: cliente.id,
+            status: "aberto",
+            itens: itensPedido,
+            dataCriacao: hoje.toISOString().slice(0, 10),
+            dataPrevista: prevista.toISOString().slice(0, 10),
+          };
+
+          return { pedidos: [novoPedido, ...s.pedidos] };
         }),
 
       gerarContagem: (classe, quantidade = 8) =>

@@ -5,13 +5,14 @@ import { Truck, CheckCircle2 } from "lucide-react";
 import { useWmsStore } from "@/store/useWmsStore";
 import { PageHeader, Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { NotaFiscalCard } from "@/components/fiscal/NotaFiscalCard";
 import { CLIENTES } from "@/data/seed/clients";
 import { formatarData } from "@/lib/format";
 
 const TRANSPORTADORAS = ["Transul Logística", "Rápido Vale Express", "Frota própria Braspel"];
 
 export default function ExpedicaoPage() {
-  const { pedidos, expedirPedido } = useWmsStore();
+  const { pedidos, notasFiscais, expedirPedido } = useWmsStore();
   const [transportadoraPorPedido, setTransportadoraPorPedido] = useState<Record<string, string>>({});
 
   const prontosParaExpedir = pedidos.filter((p) => p.status === "embalado");
@@ -68,29 +69,26 @@ export default function ExpedicaoPage() {
           <CheckCircle2 size={16} className="text-status-ok" />
           <h3 className="font-display font-semibold text-sm">Histórico de expedições</h3>
         </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-y border-border text-left text-xs text-text-faint">
-              <th className="px-5 py-2 font-medium">Pedido</th>
-              <th className="px-5 py-2 font-medium">Cliente</th>
-              <th className="px-5 py-2 font-medium">Transportadora</th>
-              <th className="px-5 py-2 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {expedidos.map((p) => (
-              <tr key={p.id} className="border-b border-border last:border-0">
-                <td className="px-5 py-2.5">{p.numero}</td>
-                <td className="px-5 py-2.5 text-text-muted">{CLIENTES.find((c) => c.id === p.clienteId)?.nome}</td>
-                <td className="px-5 py-2.5 text-text-muted">{p.transportadora}</td>
-                <td className="px-5 py-2.5">
-                  <Badge tom="ok">Expedido</Badge>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {expedidos.length === 0 && <p className="text-sm text-text-faint text-center py-6">Nenhuma expedição ainda.</p>}
+        <div className="divide-y divide-border">
+          {expedidos.map((p) => {
+            const nota = p.notaFiscalSaidaId ? notasFiscais.find((n) => n.id === p.notaFiscalSaidaId) : undefined;
+            return (
+              <div key={p.id} className="px-5 py-4 flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-text">
+                    {p.numero} · <span className="text-text-muted font-normal">{CLIENTES.find((c) => c.id === p.clienteId)?.nome}</span>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-text-muted">{p.transportadora}</span>
+                    <Badge tom="ok">Expedido</Badge>
+                  </div>
+                </div>
+                {nota && <NotaFiscalCard nota={nota} />}
+              </div>
+            );
+          })}
+          {expedidos.length === 0 && <p className="text-sm text-text-faint text-center py-6">Nenhuma expedição ainda.</p>}
+        </div>
       </Card>
     </div>
   );
