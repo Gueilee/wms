@@ -10,6 +10,7 @@ import {
   ScanLine,
   Users,
   Bell,
+  TabletSmartphone,
 } from "lucide-react";
 
 export const NAV_ITEMS = [
@@ -18,6 +19,7 @@ export const NAV_ITEMS = [
   { href: "/itens", label: "Cadastro de itens", icon: Boxes },
   { href: "/enderecamento", label: "Endereçamento", icon: Map },
   { href: "/mapa-3d", label: "Mapa 3D", icon: Box },
+  { href: "/coletor", label: "Simulador de coletor", icon: TabletSmartphone },
   { href: "/recebimento", label: "Recebimento", icon: PackageCheck },
   { href: "/separacao", label: "Separação & Packing", icon: ClipboardList },
   { href: "/expedicao", label: "Expedição", icon: Truck },

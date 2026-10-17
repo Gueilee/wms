@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { PackageCheck, ArrowRight, CheckCircle2, FilePlus2 } from "lucide-react";
+import Link from "next/link";
+import { PackageCheck, ArrowRight, CheckCircle2, FilePlus2, TabletSmartphone } from "lucide-react";
 import { useWmsStore } from "@/store/useWmsStore";
 import { PageHeader, Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -35,12 +36,20 @@ export default function RecebimentoPage() {
         titulo="Recebimento"
         descricao="Conferência de entrada com sugestão automática de endereço — o operador pode confirmar ou escolher outra posição."
         acoes={
-          <button
-            onClick={simularChegadaNfe}
-            className="flex items-center gap-2 rounded-(--radius-md) bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer hover:bg-brand-green-600 transition-colors"
-          >
-            <FilePlus2 size={14} /> Simular chegada de nova NF-e
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/coletor"
+              className="flex items-center gap-2 rounded-(--radius-md) border border-border text-text-muted text-xs font-semibold px-3 py-2.5 hover:bg-surface-muted transition-colors"
+            >
+              <TabletSmartphone size={14} /> Ver no coletor
+            </Link>
+            <button
+              onClick={simularChegadaNfe}
+              className="flex items-center gap-2 rounded-(--radius-md) bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer hover:bg-brand-green-600 transition-colors"
+            >
+              <FilePlus2 size={14} /> Simular chegada de nova NF-e
+            </button>
+          </div>
         }
       />
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ClipboardList, ScanBarcode, PackageOpen, Tag, MapPin, PlugZap } from "lucide-react";
+import Link from "next/link";
+import { ClipboardList, ScanBarcode, PackageOpen, Tag, MapPin, PlugZap, TabletSmartphone } from "lucide-react";
 import { useWmsStore } from "@/store/useWmsStore";
 import { PageHeader, Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -23,12 +24,20 @@ export default function SeparacaoPage() {
         titulo="Separação & Packing"
         descricao="Picking guiado por pedido, com baixa automática de estoque e geração de etiqueta GS1-128 no empacotamento."
         acoes={
-          <button
-            onClick={simularNovoPedido}
-            className="flex items-center gap-2 rounded-(--radius-md) bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer hover:bg-brand-green-600 transition-colors"
-          >
-            <PlugZap size={14} /> Simular novo pedido recebido
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/coletor"
+              className="flex items-center gap-2 rounded-(--radius-md) border border-border text-text-muted text-xs font-semibold px-3 py-2.5 hover:bg-surface-muted transition-colors"
+            >
+              <TabletSmartphone size={14} /> Ver no coletor
+            </Link>
+            <button
+              onClick={simularNovoPedido}
+              className="flex items-center gap-2 rounded-(--radius-md) bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer hover:bg-brand-green-600 transition-colors"
+            >
+              <PlugZap size={14} /> Simular novo pedido recebido
+            </button>
+          </div>
         }
       />
       <p className="text-[11px] text-text-faint -mt-4 mb-4">
