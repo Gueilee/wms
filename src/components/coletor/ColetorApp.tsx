@@ -1,12 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, BatteryFull, CheckCircle2, ClipboardList, MapPin, PackageCheck, ScanLine, Wifi } from "lucide-react";
+import {
+  ArrowLeft,
+  BatteryFull,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardList,
+  MapPin,
+  PackageCheck,
+  PartyPopper,
+  ScanLine,
+  Wifi,
+} from "lucide-react";
 import { useWmsStore } from "@/store/useWmsStore";
 import { useEscanear } from "@/hooks/useEscanear";
 import { useAgora } from "@/hooks/useAgora";
+import { CLIENTES } from "@/data/seed/clients";
 import { NumericKeypad } from "./NumericKeypad";
 import { formatarNumero } from "@/lib/format";
+import type { Item, Localizacao, Pedido, RecebimentoPendente } from "@/types";
 
 type Tela = "menu" | "recebimento" | "separacao";
 
@@ -34,13 +47,13 @@ export function ColetorApp() {
   );
 }
 
-function CabecalhoTela({ titulo, onSair }: { titulo: string; onSair: () => void }) {
+function CabecalhoTela({ titulo, onVoltar }: { titulo: string; onVoltar: () => void }) {
   return (
     <div className="flex items-center gap-2 px-2.5 py-2 border-b border-white/10 shrink-0">
-      <button onClick={onSair} className="cursor-pointer text-white/70" aria-label="Voltar">
+      <button onClick={onVoltar} className="cursor-pointer text-white/70" aria-label="Voltar">
         <ArrowLeft size={16} />
       </button>
-      <span className="text-xs font-semibold">{titulo}</span>
+      <span className="text-xs font-semibold truncate">{titulo}</span>
     </div>
   );
 }
@@ -85,63 +98,144 @@ function BotaoEscanear({ onConcluir, rotulo = "ESCANEAR" }: { onConcluir: () => 
   );
 }
 
+function TelaConcluido({ mensagem, onConcluir }: { mensagem: string; onConcluir: () => void }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center gap-3 px-4 text-center">
+      <PartyPopper size={28} className="text-brand-bronze-300" />
+      <p className="text-sm font-bold">{mensagem}</p>
+      <button
+        onClick={onConcluir}
+        className="rounded-lg bg-brand-green-700 text-white text-xs font-bold px-4 py-2.5 cursor-pointer active:bg-brand-green-600"
+      >
+        CONCLUIR
+      </button>
+    </div>
+  );
+}
+
+// ---------- Recebimento: lista de NF-e -> lista de itens -> tarefa ----------
+
 function FluxoRecebimento({ onSair }: { onSair: () => void }) {
   const { recebimentosPendentes, itens, sugerirEndereco, confirmarPutaway, simularChegadaNfe } = useWmsStore();
-  const [etapa, setEtapa] = useState<"escanear" | "quantidade" | "enderecar">("escanear");
+  const [recebimentoId, setRecebimentoId] = useState<string | null>(null);
+  const [itemAtivoId, setItemAtivoId] = useState<string | null>(null);
+  const [etapaTarefa, setEtapaTarefa] = useState<"escanear" | "quantidade" | "enderecar">("escanear");
   const [quantidadeTexto, setQuantidadeTexto] = useState("");
 
-  const filas = recebimentosPendentes.flatMap((rec) =>
-    rec.itens.map((linha) => ({ recebimentoId: rec.id, item: itens.find((i) => i.id === linha.itemId), quantidadeEsperada: linha.quantidadeEsperada }))
-  );
-  const candidata = filas.find((f) => f.item);
-  const tarefa = candidata?.item
-    ? { recebimentoId: candidata.recebimentoId, item: candidata.item, quantidadeEsperada: candidata.quantidadeEsperada }
-    : null;
+  const recebimento = recebimentosPendentes.find((r) => r.id === recebimentoId) ?? null;
 
-  if (!tarefa) {
+  function abrirItem(itemId: string, quantidadeEsperada: number) {
+    setItemAtivoId(itemId);
+    setEtapaTarefa("escanear");
+    setQuantidadeTexto(String(quantidadeEsperada));
+  }
+
+  function avancarAposConfirmar(rec: RecebimentoPendente, itemIdConcluido: string) {
+    const restantes = rec.itens.filter((l) => l.itemId !== itemIdConcluido);
+    if (restantes.length > 0) {
+      abrirItem(restantes[0].itemId, restantes[0].quantidadeEsperada);
+    } else {
+      setItemAtivoId(null);
+    }
+  }
+
+  if (!recebimento) {
     return (
       <div className="h-full flex flex-col">
-        <CabecalhoTela titulo="Recebimento" onSair={onSair} />
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 text-center">
-          <CheckCircle2 size={28} className="text-status-ok" />
-          <p className="text-xs text-white/70">Nenhum recebimento pendente.</p>
-          <button
-            onClick={simularChegadaNfe}
-            className="rounded-lg bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer active:bg-brand-green-600"
-          >
-            Simular chegada de NF-e
-          </button>
+        <CabecalhoTela titulo="Recebimento" onVoltar={onSair} />
+        {recebimentosPendentes.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 text-center">
+            <CheckCircle2 size={28} className="text-status-ok" />
+            <p className="text-xs text-white/70">Nenhum recebimento pendente.</p>
+            <button
+              onClick={simularChegadaNfe}
+              className="rounded-lg bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer active:bg-brand-green-600"
+            >
+              Simular chegada de NF-e
+            </button>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto divide-y divide-white/10">
+            {recebimentosPendentes.map((rec) => (
+              <button
+                key={rec.id}
+                onClick={() => setRecebimentoId(rec.id)}
+                className="w-full flex items-center justify-between gap-2 px-3 py-3 text-left cursor-pointer active:bg-white/10"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold truncate">{rec.numero}</p>
+                  <p className="text-[10px] text-white/50 truncate">{rec.fornecedorOuProducao}</p>
+                  <p className="text-[10px] text-brand-bronze-300 mt-0.5">{rec.itens.length} item(ns)</p>
+                </div>
+                <ChevronRight size={16} className="text-white/40 shrink-0" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const itemAtivo = itemAtivoId ? itens.find((i) => i.id === itemAtivoId) : undefined;
+  const linhaAtiva = itemAtivoId ? recebimento.itens.find((l) => l.itemId === itemAtivoId) : undefined;
+
+  if (!itemAtivo || !linhaAtiva) {
+    // Lista de itens da NF-e selecionada.
+    if (recebimento.itens.length === 0) {
+      return (
+        <TelaConcluido
+          mensagem={`NF-e ${recebimento.numero} totalmente endereçada!`}
+          onConcluir={() => setRecebimentoId(null)}
+        />
+      );
+    }
+    return (
+      <div className="h-full flex flex-col">
+        <CabecalhoTela titulo={recebimento.numero} onVoltar={() => setRecebimentoId(null)} />
+        <div className="flex-1 overflow-y-auto divide-y divide-white/10">
+          {recebimento.itens.map((linha) => {
+            const item = itens.find((i) => i.id === linha.itemId);
+            if (!item) return null;
+            return (
+              <button
+                key={linha.itemId}
+                onClick={() => abrirItem(linha.itemId, linha.quantidadeEsperada)}
+                className="w-full flex items-center justify-between gap-2 px-3 py-3 text-left cursor-pointer active:bg-white/10"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold truncate">{item.nome}</p>
+                  <p className="text-[10px] text-white/50">
+                    {formatarNumero(linha.quantidadeEsperada)} {item.unidadeMedida}
+                  </p>
+                </div>
+                <ChevronRight size={16} className="text-white/40 shrink-0" />
+              </button>
+            );
+          })}
         </div>
       </div>
     );
   }
 
-  const sugestao = sugerirEndereco(tarefa.item.id);
+  const sugestao = sugerirEndereco(itemAtivo.id);
 
   return (
     <div className="h-full flex flex-col">
-      <CabecalhoTela titulo="Recebimento" onSair={onSair} />
+      <CabecalhoTela titulo={itemAtivo.nome} onVoltar={() => setItemAtivoId(null)} />
       <div className="flex-1 flex flex-col justify-between px-3 py-3 min-h-0">
         <div>
           <p className="text-[10px] text-white/50 uppercase tracking-wide mb-1">
-            {etapa === "escanear" ? "Escaneie o item" : etapa === "quantidade" ? "Confira a quantidade" : "Confirme o endereço"}
+            {etapaTarefa === "escanear" ? "Escaneie o item" : etapaTarefa === "quantidade" ? "Confira a quantidade" : "Confirme o endereço"}
           </p>
-          <p className="text-sm font-bold leading-tight">{tarefa.item.nome}</p>
+          <p className="text-sm font-bold leading-tight">{itemAtivo.nome}</p>
           <p className="text-[11px] text-white/60 mt-0.5">
-            Esperado: {formatarNumero(tarefa.quantidadeEsperada)} {tarefa.item.unidadeMedida}
+            Esperado: {formatarNumero(linhaAtiva.quantidadeEsperada)} {itemAtivo.unidadeMedida}
           </p>
         </div>
 
-        {etapa === "escanear" && (
-          <BotaoEscanear
-            onConcluir={() => {
-              setQuantidadeTexto(String(tarefa.quantidadeEsperada));
-              setEtapa("quantidade");
-            }}
-          />
-        )}
+        {etapaTarefa === "escanear" && <BotaoEscanear onConcluir={() => setEtapaTarefa("quantidade")} />}
 
-        {etapa === "quantidade" && (
+        {etapaTarefa === "quantidade" && (
           <div className="flex flex-col gap-2">
             <div className="rounded-lg bg-white/10 py-2.5 text-center text-2xl font-bold tabular">{quantidadeTexto || "0"}</div>
             <NumericKeypad
@@ -149,7 +243,7 @@ function FluxoRecebimento({ onSair }: { onSair: () => void }) {
               onBackspace={() => setQuantidadeTexto((q) => q.slice(0, -1))}
             />
             <button
-              onClick={() => setEtapa("enderecar")}
+              onClick={() => setEtapaTarefa("enderecar")}
               className="rounded-lg bg-brand-bronze-500 text-white text-sm font-bold py-2.5 cursor-pointer active:bg-brand-bronze-600"
             >
               OK
@@ -157,7 +251,7 @@ function FluxoRecebimento({ onSair }: { onSair: () => void }) {
           </div>
         )}
 
-        {etapa === "enderecar" && (
+        {etapaTarefa === "enderecar" && (
           <div className="flex flex-col gap-2.5">
             <div className="rounded-lg bg-white/10 py-3 flex flex-col items-center gap-1">
               <MapPin size={18} className="text-brand-bronze-300" />
@@ -168,9 +262,8 @@ function FluxoRecebimento({ onSair }: { onSair: () => void }) {
               disabled={!sugestao}
               onClick={() => {
                 if (!sugestao) return;
-                confirmarPutaway(tarefa.recebimentoId, tarefa.item.id, Number(quantidadeTexto) || 0, sugestao.id);
-                setEtapa("escanear");
-                setQuantidadeTexto("");
+                confirmarPutaway(recebimento.id, itemAtivo.id, Number(quantidadeTexto) || 0, sugestao.id);
+                avancarAposConfirmar(recebimento, itemAtivo.id);
               }}
               className="rounded-lg bg-brand-green-700 text-white text-sm font-bold py-3 cursor-pointer active:bg-brand-green-600 disabled:opacity-50"
             >
@@ -183,36 +276,120 @@ function FluxoRecebimento({ onSair }: { onSair: () => void }) {
   );
 }
 
+// ---------- Separação: lista de pedidos -> lista de itens -> tarefa ----------
+
+interface LinhaSeparacao {
+  itemId: string;
+  item?: Item;
+  loc?: Localizacao;
+  restante: number;
+  concluida: boolean;
+}
+
+function linhasDoPedido(pedido: Pedido, itens: Item[], localizacoes: Localizacao[]): LinhaSeparacao[] {
+  const linhas = pedido.itens.map((it) => {
+    const item = itens.find((i) => i.id === it.itemId);
+    const loc = item?.localizacaoPrincipalId ? localizacoes.find((l) => l.id === item.localizacaoPrincipalId) : undefined;
+    return { itemId: it.itemId, item, loc, restante: it.quantidade - it.quantidadeSeparada, concluida: it.quantidadeSeparada >= it.quantidade };
+  });
+  return linhas.sort((a, b) => (a.loc?.codigo ?? "zzz").localeCompare(b.loc?.codigo ?? "zzz"));
+}
+
 function FluxoSeparacao({ onSair }: { onSair: () => void }) {
   const { pedidos, itens, localizacoes, iniciarSeparacao, confirmarPick, simularNovoPedido } = useWmsStore();
   const { escaneando, disparar } = useEscanear();
+  const [pedidoId, setPedidoId] = useState<string | null>(null);
+  const [itemAtivoId, setItemAtivoId] = useState<string | null>(null);
 
-  const ativos = pedidos.filter((p) => p.status !== "embalado" && p.status !== "expedido");
-  const linhas = ativos.flatMap((p) =>
-    p.itens
-      .filter((it) => it.quantidadeSeparada < it.quantidade)
-      .map((it) => {
-        const item = itens.find((i) => i.id === it.itemId);
-        const loc = item?.localizacaoPrincipalId ? localizacoes.find((l) => l.id === item.localizacaoPrincipalId) : undefined;
-        return { pedidoId: p.id, pedidoNumero: p.numero, item, loc, restante: it.quantidade - it.quantidadeSeparada };
-      })
+  const pedidosAtivos = pedidos.filter(
+    (p) => p.status !== "embalado" && p.status !== "expedido" && p.itens.some((it) => it.quantidadeSeparada < it.quantidade)
   );
-  const validas = [...linhas.filter((l) => l.item)].sort((a, b) => (a.loc?.codigo ?? "zzz").localeCompare(b.loc?.codigo ?? "zzz"));
-  const tarefa = validas[0] ?? null;
+  const pedido = pedidos.find((p) => p.id === pedidoId) ?? null;
 
-  if (!tarefa) {
+  function iniciarItem(linha: LinhaSeparacao) {
+    if (!linha.item) return;
+    setItemAtivoId(linha.itemId);
+  }
+
+  if (!pedido) {
     return (
       <div className="h-full flex flex-col">
-        <CabecalhoTela titulo="Separação" onSair={onSair} />
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 text-center">
-          <CheckCircle2 size={28} className="text-status-ok" />
-          <p className="text-xs text-white/70">Nenhuma separação pendente.</p>
-          <button
-            onClick={simularNovoPedido}
-            className="rounded-lg bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer active:bg-brand-green-600"
-          >
-            Simular novo pedido
-          </button>
+        <CabecalhoTela titulo="Separação" onVoltar={onSair} />
+        {pedidosAtivos.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 text-center">
+            <CheckCircle2 size={28} className="text-status-ok" />
+            <p className="text-xs text-white/70">Nenhuma separação pendente.</p>
+            <button
+              onClick={simularNovoPedido}
+              className="rounded-lg bg-brand-green-700 text-white text-xs font-semibold px-3 py-2.5 cursor-pointer active:bg-brand-green-600"
+            >
+              Simular novo pedido
+            </button>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto divide-y divide-white/10">
+            {pedidosAtivos.map((p) => {
+              const cliente = CLIENTES.find((c) => c.id === p.clienteId);
+              const pendentes = p.itens.filter((it) => it.quantidadeSeparada < it.quantidade).length;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setPedidoId(p.id)}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-3 text-left cursor-pointer active:bg-white/10"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold truncate">{p.numero}</p>
+                    <p className="text-[10px] text-white/50 truncate">{cliente?.nome}</p>
+                    <p className="text-[10px] text-brand-bronze-300 mt-0.5">{pendentes} item(ns) pendente(s)</p>
+                  </div>
+                  <ChevronRight size={16} className="text-white/40 shrink-0" />
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const linhas = linhasDoPedido(pedido, itens, localizacoes);
+  const linhaAtiva = itemAtivoId ? linhas.find((l) => l.itemId === itemAtivoId) : undefined;
+  const todasConcluidas = linhas.every((l) => l.concluida);
+
+  if (todasConcluidas) {
+    return <TelaConcluido mensagem={`Pedido ${pedido.numero} separado!`} onConcluir={() => setPedidoId(null)} />;
+  }
+
+  if (!linhaAtiva || !linhaAtiva.item) {
+    return (
+      <div className="h-full flex flex-col">
+        <CabecalhoTela titulo={pedido.numero} onVoltar={() => setPedidoId(null)} />
+        <div className="flex-1 overflow-y-auto divide-y divide-white/10">
+          {linhas.map((linha) => (
+            <button
+              key={linha.itemId}
+              onClick={() => iniciarItem(linha)}
+              disabled={linha.concluida}
+              className="w-full flex items-center justify-between gap-2 px-3 py-3 text-left cursor-pointer active:bg-white/10 disabled:cursor-default"
+            >
+              <div className="min-w-0 flex items-center gap-2">
+                {linha.concluida ? (
+                  <CheckCircle2 size={14} className="text-status-ok shrink-0" />
+                ) : (
+                  <MapPin size={14} className="text-brand-bronze-300 shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <p className={`text-xs font-semibold truncate ${linha.concluida ? "line-through text-white/40" : ""}`}>
+                    {linha.item?.nome}
+                  </p>
+                  <p className="text-[10px] text-white/50">
+                    {linha.loc?.codigo ?? "sem posição"} · {formatarNumero(linha.restante)} {linha.item?.unidadeMedida}
+                  </p>
+                </div>
+              </div>
+              {!linha.concluida && <ChevronRight size={16} className="text-white/40 shrink-0" />}
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -220,17 +397,17 @@ function FluxoSeparacao({ onSair }: { onSair: () => void }) {
 
   return (
     <div className="h-full flex flex-col">
-      <CabecalhoTela titulo={`Separação · ${tarefa.pedidoNumero}`} onSair={onSair} />
+      <CabecalhoTela titulo={`${pedido.numero}`} onVoltar={() => setItemAtivoId(null)} />
       <div className="flex-1 flex flex-col justify-between px-3 py-3 min-h-0">
         <div>
           <p className="text-[10px] text-white/50 uppercase tracking-wide mb-1">Vá até a posição</p>
           <div className="rounded-lg bg-white/10 py-3 flex flex-col items-center gap-1 mb-3">
             <MapPin size={18} className="text-brand-bronze-300" />
-            <span className="text-xl font-bold tabular">{tarefa.loc?.codigo ?? "sem posição"}</span>
+            <span className="text-xl font-bold tabular">{linhaAtiva.loc?.codigo ?? "sem posição"}</span>
           </div>
-          <p className="text-sm font-bold leading-tight">{tarefa.item?.nome}</p>
+          <p className="text-sm font-bold leading-tight">{linhaAtiva.item.nome}</p>
           <p className="text-[11px] text-white/60 mt-0.5">
-            Coletar: {formatarNumero(tarefa.restante)} {tarefa.item?.unidadeMedida}
+            Coletar: {formatarNumero(linhaAtiva.restante)} {linhaAtiva.item.unidadeMedida}
           </p>
         </div>
 
@@ -238,9 +415,12 @@ function FluxoSeparacao({ onSair }: { onSair: () => void }) {
           <button
             onClick={() =>
               disparar(() => {
-                const pedido = pedidos.find((p) => p.id === tarefa.pedidoId);
-                if (pedido?.status === "aberto") iniciarSeparacao(tarefa.pedidoId);
-                confirmarPick(tarefa.pedidoId, tarefa.item!.id, tarefa.restante);
+                if (pedido.status === "aberto") iniciarSeparacao(pedido.id);
+                confirmarPick(pedido.id, linhaAtiva.item!.id, linhaAtiva.restante);
+                // Usa a lista já calculada neste render (não o estado pós-ação, que
+                // só chega no próximo render) para decidir a próxima linha pendente.
+                const proxima = linhas.find((l) => !l.concluida && l.itemId !== linhaAtiva.itemId);
+                setItemAtivoId(proxima ? proxima.itemId : null);
               })
             }
             disabled={escaneando}
