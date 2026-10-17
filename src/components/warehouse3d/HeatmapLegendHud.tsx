@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import clsx from "clsx";
-import { Box, LayoutGrid, Move3d, Radio } from "lucide-react";
+import { Box, Expand, Flame, LayoutGrid, Minimize2, Move3d, Radio } from "lucide-react";
 import type { Localizacao, MovimentoEstoque } from "@/types";
 import { RUAS_ORDEM } from "@/data/seed/layout";
 import { mapaUltimaAtividade, intensidadeAtividade, type ModoHeatmap } from "@/lib/heatmap";
@@ -20,12 +20,15 @@ interface HudProps {
   onRuaFoco: (r: string) => void;
   localizacoes: Localizacao[];
   movimentos: MovimentoEstoque[];
+  telaCheia: boolean;
+  onTelaCheia: () => void;
 }
 
 const MODOS: { id: ModoHeatmap; label: string }[] = [
   { id: "abc", label: "Curva ABC" },
   { id: "ocupacao", label: "Ocupação" },
   { id: "atividade", label: "Atividade ao vivo" },
+  { id: "movimentacao", label: "Movimentação (piso)" },
 ];
 
 const PRESETS: { id: PresetCamera; label: string; icon: typeof Box }[] = [
@@ -45,6 +48,8 @@ export function HeatmapLegendHud({
   onRuaFoco,
   localizacoes,
   movimentos,
+  telaCheia,
+  onTelaCheia,
 }: HudProps) {
   const agora = useAgora(1000);
 
@@ -54,13 +59,29 @@ export function HeatmapLegendHud({
       const daRua = localizacoes.filter((l) => l.rua === rua);
       const ocupadas = daRua.filter((l) => l.status === "ocupado").length;
       const atividade = daRua.reduce((acc, l) => acc + intensidadeAtividade(l.id, ultimaAtividade, agora), 0);
-      return { rua, ocupacaoPct: daRua.length ? Math.round((ocupadas / daRua.length) * 100) : 0, atividade };
-    }).sort((a, b) => (modo === "atividade" ? b.atividade - a.atividade : b.ocupacaoPct - a.ocupacaoPct));
+      const comIndice = daRua.filter((l) => l.indiceMovimentacao !== undefined);
+      const movimentacao = comIndice.length ? comIndice.reduce((acc, l) => acc + (l.indiceMovimentacao ?? 0), 0) / comIndice.length : 0;
+      return { rua, ocupacaoPct: daRua.length ? Math.round((ocupadas / daRua.length) * 100) : 0, atividade, movimentacao };
+    }).sort((a, b) => {
+      if (modo === "atividade") return b.atividade - a.atividade;
+      if (modo === "movimentacao") return b.movimentacao - a.movimentacao;
+      return b.ocupacaoPct - a.ocupacaoPct;
+    });
   }, [localizacoes, movimentos, modo, agora]);
 
   return (
     <div className="pointer-events-none absolute inset-0 p-4 flex flex-col justify-between">
-      <div className="pointer-events-auto flex flex-wrap items-start gap-3">
+      <div className="pointer-events-auto absolute top-4 right-4">
+        <button
+          onClick={onTelaCheia}
+          className="flex items-center gap-2 rounded-(--radius-md) bg-(--girou-ink)/90 backdrop-blur border border-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10 transition-colors cursor-pointer"
+        >
+          {telaCheia ? <Minimize2 size={14} /> : <Expand size={14} />}
+          {telaCheia ? "Sair da tela cheia" : "Tela cheia"}
+        </button>
+      </div>
+
+      <div className="pointer-events-auto flex flex-wrap items-start gap-3 pr-36">
         <div className="rounded-(--radius-md) bg-(--girou-ink)/90 backdrop-blur border border-white/10 p-3 flex flex-col gap-2">
           <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">Câmera</span>
           <div className="flex gap-1.5">
@@ -107,6 +128,7 @@ export function HeatmapLegendHud({
                 )}
               >
                 {m.id === "atividade" && <Radio size={12} />}
+                {m.id === "movimentacao" && <Flame size={12} />}
                 {m.label}
               </button>
             ))}
@@ -134,7 +156,11 @@ export function HeatmapLegendHud({
                 {i + 1}. Rua {r.rua}
               </span>
               <span className="tabular text-white/50">
-                {modo === "atividade" ? r.atividade.toFixed(1) : `${r.ocupacaoPct}%`}
+                {modo === "atividade"
+                  ? r.atividade.toFixed(1)
+                  : modo === "movimentacao"
+                    ? `${Math.round(r.movimentacao * 100)}%`
+                    : `${r.ocupacaoPct}%`}
               </span>
             </div>
           ))}

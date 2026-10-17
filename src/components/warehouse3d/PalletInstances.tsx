@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
+import { Instance, Instances } from "@react-three/drei";
+import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import type { Item, Localizacao } from "@/types";
 import { coordenadas3d, corPorModo, intensidadeAtividade, mapaUltimaAtividade, type ModoHeatmap } from "@/lib/heatmap";
+import { useAgora } from "@/hooks/useAgora";
 
 interface PalletInstancesProps {
   localizacoes: Localizacao[];
@@ -19,6 +21,14 @@ interface PalletInstancesProps {
 
 const PALLET_SIZE: [number, number, number] = [0.85, 1.05, 0.85];
 
+function definirCursor(valor: string) {
+  document.body.style.cursor = valor;
+}
+
+// Usa <Instances>/<Instance> do drei em vez de <instancedMesh> bruto: cada
+// posição vira um elemento React de verdade, com seu próprio onClick —
+// elimina a classe de bug de raycasting manual via e.instanceId que afeta
+// InstancedMesh puro em alguns cenários (instâncias que não respondiam a clique).
 export function PalletInstances({
   localizacoes,
   itens,
@@ -29,72 +39,50 @@ export function PalletInstances({
   onSelecionar,
   onHover,
 }: PalletInstancesProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
   const itemPorId = useMemo(() => new Map(itens.map((i) => [i.id, i])), [itens]);
+  // A decaída da "atividade ao vivo" não precisa de 60fps — recalcular a cada
+  // ~800ms já dá o efeito de pulso visual, sem mutação imperativa de buffer.
+  const agora = useAgora(800);
 
-  // Posiciona cada instância uma única vez — a topologia real do armazém não muda em runtime.
-  useEffect(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-    const matrix = new THREE.Matrix4();
-    localizacoes.forEach((loc, i) => {
-      const [x, y, z] = coordenadas3d(loc);
-      matrix.makeTranslation(x, y, z);
-      mesh.setMatrixAt(i, matrix);
-    });
-    mesh.instanceMatrix.needsUpdate = true;
-  }, [localizacoes]);
-
-  // Recolore a cada frame conforme o modo de heatmap ativo (a atividade recente decai com o tempo).
-  useFrame(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-    const agora = Date.now();
-    const cor = new THREE.Color();
-    localizacoes.forEach((loc, i) => {
-      const item = loc.itemId ? itemPorId.get(loc.itemId) : undefined;
-      const intensidade = intensidadeAtividade(loc.id, ultimaAtividade, agora);
-      const hex = corPorModo(modo, loc, item, intensidade);
-      cor.set(hex);
-      if (loc.id === selecionadaId) cor.lerp(new THREE.Color("#ffffff"), 0.35);
-      mesh.setColorAt(i, cor);
-    });
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    if (materialRef.current) materialRef.current.opacity = opacidade;
-  });
-
-  function aoMover(e: ThreeEvent<PointerEvent>) {
+  function aoMover(e: ThreeEvent<PointerEvent>, loc: Localizacao) {
     e.stopPropagation();
-    if (e.instanceId === undefined) return;
-    const loc = localizacoes[e.instanceId];
     onHover(loc, { x: e.clientX, y: e.clientY });
-    document.body.style.cursor = "pointer";
+    definirCursor("pointer");
   }
 
   function aoSair() {
     onHover(null);
-    document.body.style.cursor = "auto";
+    definirCursor("auto");
   }
 
-  function aoClicar(e: ThreeEvent<MouseEvent>) {
+  function aoClicar(e: ThreeEvent<MouseEvent>, loc: Localizacao) {
     e.stopPropagation();
-    if (e.instanceId === undefined) return;
-    onSelecionar(localizacoes[e.instanceId]);
+    onSelecionar(loc);
   }
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[undefined, undefined, localizacoes.length]}
-      castShadow
-      receiveShadow
-      onPointerMove={aoMover}
-      onPointerOut={aoSair}
-      onClick={aoClicar}
-    >
+    <Instances limit={localizacoes.length} range={localizacoes.length}>
       <boxGeometry args={PALLET_SIZE} />
-      <meshStandardMaterial ref={materialRef} roughness={0.6} metalness={0.05} transparent />
-    </instancedMesh>
+      <meshStandardMaterial roughness={0.6} metalness={0.05} transparent opacity={opacidade} />
+      {localizacoes.map((loc) => {
+        const item = loc.itemId ? itemPorId.get(loc.itemId) : undefined;
+        const intensidade = intensidadeAtividade(loc.id, ultimaAtividade, agora);
+        const cor = new THREE.Color(corPorModo(modo, loc, item, intensidade));
+        if (loc.id === selecionadaId) cor.lerp(new THREE.Color("#ffffff"), 0.4);
+
+        return (
+          <Instance
+            key={loc.id}
+            position={coordenadas3d(loc)}
+            color={cor}
+            castShadow
+            receiveShadow
+            onPointerMove={(e: ThreeEvent<PointerEvent>) => aoMover(e, loc)}
+            onPointerOut={aoSair}
+            onClick={(e: ThreeEvent<MouseEvent>) => aoClicar(e, loc)}
+          />
+        );
+      })}
+    </Instances>
   );
 }

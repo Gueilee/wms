@@ -110,6 +110,7 @@ export const useWmsStore = create<WmsStore>()(
           const itens = s.itens.map((i) =>
             i.id === itemId ? { ...i, saldoDisponivel: i.saldoDisponivel + quantidade, localizacaoPrincipalId: i.localizacaoPrincipalId ?? localizacaoId } : i
           );
+          const agoraIso = new Date().toISOString();
           const localizacoes = s.localizacoes.map((l) =>
             l.id === localizacaoId
               ? {
@@ -117,6 +118,9 @@ export const useWmsStore = create<WmsStore>()(
                   status: "ocupado" as const,
                   itemId,
                   quantidadeArmazenada: (l.quantidadeArmazenada ?? 0) + quantidade,
+                  dataEntradaAtual: l.dataEntradaAtual ?? agoraIso,
+                  ultimaMovimentacaoEm: agoraIso,
+                  indiceMovimentacao: Math.min(1, (l.indiceMovimentacao ?? 0) + 0.08),
                 }
               : l
           );
@@ -178,9 +182,15 @@ export const useWmsStore = create<WmsStore>()(
             i.id === itemId ? { ...i, saldoDisponivel: Math.max(0, i.saldoDisponivel - quantidade) } : i
           );
 
+          const agoraIsoPick = new Date().toISOString();
           const localizacoes = s.localizacoes.map((l) =>
             l.itemId === itemId
-              ? { ...l, quantidadeArmazenada: Math.max(0, (l.quantidadeArmazenada ?? 0) - quantidade) }
+              ? {
+                  ...l,
+                  quantidadeArmazenada: Math.max(0, (l.quantidadeArmazenada ?? 0) - quantidade),
+                  ultimaMovimentacaoEm: agoraIsoPick,
+                  indiceMovimentacao: Math.min(1, (l.indiceMovimentacao ?? 0) + 0.08),
+                }
               : l
           );
 

@@ -36,6 +36,12 @@ export interface Localizacao {
   loteId?: string;
   quantidadeArmazenada?: number;
   motivoBloqueio?: string;
+  /** 0–1, intensidade histórica de movimentação — alimenta o heatmap de piso e o modo "Movimentação". */
+  indiceMovimentacao?: number;
+  /** Quando o estoque atualmente nesta posição chegou — base para "tempo parado". */
+  dataEntradaAtual?: string;
+  /** Qualquer toque (entrada ou saída) nesta posição — base para "tempo parado" e atividade ao vivo. */
+  ultimaMovimentacaoEm?: string;
 }
 
 export interface Cliente {

@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { Item, Localizacao, MovimentoEstoque } from "@/types";
 import { coordenadas3d, mapaUltimaAtividade, type ModoHeatmap } from "@/lib/heatmap";
@@ -10,6 +10,7 @@ import { RUAS_ORDEM } from "@/data/seed/layout";
 import { PalletInstances } from "./PalletInstances";
 import { RackFrames } from "./RackFrames";
 import { Floor } from "./Floor";
+import { FloorHeatmap } from "./FloorHeatmap";
 import { AisleLabels } from "./AisleLabels";
 import { CameraRig, type PresetCamera } from "./CameraRig";
 import { PositionTooltip } from "./PositionTooltip";
@@ -67,11 +68,10 @@ export function WarehouseScene({
   }
 
   return (
-    <div className="relative w-full h-full">
-      <Canvas shadows camera={{ position: [16, 14, 32], fov: 45 }} dpr={[1, 1.8]}>
-        <color attach="background" args={["#121714"]} />
-        <fogExp2 attach="fog" args={["#121714", 0.016]} />
-        <ambientLight intensity={0.55} />
+    <div className="relative w-full h-full bg-gradient-to-b from-[#1c2a22] via-[#101a15] to-[#050a07]">
+      <Canvas shadows camera={{ position: [16, 14, 32], fov: 45 }} dpr={[1, 1.8]} gl={{ alpha: true }}>
+        <fogExp2 attach="fog" args={["#101a15", 0.013]} />
+        <ambientLight intensity={0.5} />
         <directionalLight
           position={[18, 22, 10]}
           intensity={1.2}
@@ -82,8 +82,11 @@ export function WarehouseScene({
           shadow-camera-top={20}
           shadow-camera-bottom={-20}
         />
+        <directionalLight position={[-14, 10, -8]} intensity={0.35} color="#9fc9ff" />
+        <Environment preset="city" background={false} environmentIntensity={0.35} />
 
         <Floor largura={largura} profundidade={profundidade} />
+        {modo === "movimentacao" && <FloorHeatmap localizacoes={localizacoes} />}
         <RackFrames localizacoes={localizacoes} />
         <AisleLabels localizacoes={localizacoes} />
         <PalletInstances

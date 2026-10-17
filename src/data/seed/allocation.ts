@@ -1,5 +1,6 @@
 import type { Item, Localizacao } from "@/types";
 import { RUAS_ORDEM } from "./layout";
+import { mulberry32, randInt } from "./rng";
 
 // Aloca itens às posições físicas aplicando a mesma lógica que o sistema usa
 // no dia a dia: classe A (alto giro) nas posições mais acessíveis (altura do
@@ -7,6 +8,7 @@ import { RUAS_ORDEM } from "./layout";
 // Deliberadamente deixa ~40-45% das posições livres para demonstrar sugestão
 // de putaway durante o recebimento.
 export function alocarItens(itens: Item[], locais: Localizacao[]) {
+  const rand = mulberry32(190485);
   const alocaveis = itens.filter((i) => i.categoria !== "Ferramental");
 
   const ranqueadas = [...locais].sort((a, b) => {
@@ -27,12 +29,26 @@ export function alocarItens(itens: Item[], locais: Localizacao[]) {
   let cursorFundo = ranqueadas.length - 1;
   const usados = new Set<string>();
 
+  // Histórico sintético: cada posição ocupada já "nasce" com uma data de
+  // entrada plausível (1 a 20 dias atrás) e um índice de movimentação
+  // correlacionado à classe ABC do item — alimenta o heatmap de piso e o
+  // "tempo parado" sem depender de ações ao vivo na demonstração.
+  const estampar = (loc: Localizacao, classe: "A" | "B" | "C") => {
+    const horasAtras = randInt(rand, 2, 480);
+    const dataEntrada = new Date(Date.now() - horasAtras * 60 * 60 * 1000).toISOString();
+    loc.dataEntradaAtual = dataEntrada;
+    loc.ultimaMovimentacaoEm = dataEntrada;
+    const faixa = classe === "A" ? [0.65, 1] : classe === "B" ? [0.32, 0.62] : [0.03, 0.28];
+    loc.indiceMovimentacao = faixa[0] + rand() * (faixa[1] - faixa[0]);
+  };
+
   const ocupar = (loc: Localizacao, item: Item) => {
     loc.status = "ocupado";
     loc.itemId = item.id;
     loc.quantidadeArmazenada = Math.min(item.saldoDisponivel, loc.capacidadeUnidades);
     item.localizacaoPrincipalId = loc.id;
     usados.add(loc.id);
+    estampar(loc, item.classeAbc);
   };
 
   for (const item of porClasse.A) {
@@ -49,6 +65,7 @@ export function alocarItens(itens: Item[], locais: Localizacao[]) {
       segunda.itemId = item.id;
       segunda.quantidadeArmazenada = Math.round(item.saldoDisponivel * 0.3);
       usados.add(segunda.id);
+      estampar(segunda, item.classeAbc);
       cursorFrente++;
     }
   }

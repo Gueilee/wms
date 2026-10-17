@@ -1,7 +1,7 @@
 import type { Item, Localizacao, MovimentoEstoque } from "@/types";
 import { RUAS_ORDEM } from "@/data/seed/layout";
 
-export type ModoHeatmap = "abc" | "ocupacao" | "atividade";
+export type ModoHeatmap = "abc" | "ocupacao" | "atividade" | "movimentacao";
 
 export const JANELA_ATIVIDADE_MS = 60_000;
 
@@ -63,7 +63,18 @@ export function corPorAtividade(intensidade: number): string {
   return misturarCores(COR_BASE_ATIVIDADE, COR_PICO_ATIVIDADE, intensidade);
 }
 
-function misturarCores(hexA: string, hexB: string, t: number): string {
+// Gradiente frio -> quente para o heatmap de movimentação histórica (piso e modo "Movimentação").
+const COR_MOVIMENTACAO_FRIA = "#2563eb";
+const COR_MOVIMENTACAO_MORNA = "#f59e0b";
+const COR_MOVIMENTACAO_QUENTE = "#dc2626";
+
+export function corPorMovimentacao(indice: number): string {
+  const t = Math.max(0, Math.min(1, indice));
+  if (t < 0.5) return misturarCores(COR_MOVIMENTACAO_FRIA, COR_MOVIMENTACAO_MORNA, t / 0.5);
+  return misturarCores(COR_MOVIMENTACAO_MORNA, COR_MOVIMENTACAO_QUENTE, (t - 0.5) / 0.5);
+}
+
+export function misturarCores(hexA: string, hexB: string, t: number): string {
   const a = hexParaRgb(hexA);
   const b = hexParaRgb(hexB);
   const r = Math.round(a.r + (b.r - a.r) * t);
@@ -84,5 +95,6 @@ function hexParaRgb(hex: string) {
 export function corPorModo(modo: ModoHeatmap, loc: Localizacao, item: Item | undefined, intensidadeAtiv: number): string {
   if (modo === "abc") return corPorClasseAbc(loc, item);
   if (modo === "ocupacao") return corPorOcupacao(loc);
+  if (modo === "movimentacao") return corPorMovimentacao(loc.indiceMovimentacao ?? 0);
   return corPorAtividade(intensidadeAtiv);
 }

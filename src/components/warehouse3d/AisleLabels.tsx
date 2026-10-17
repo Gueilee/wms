@@ -20,7 +20,7 @@ export function AisleLabels({ localizacoes }: { localizacoes: Localizacao[] }) {
     <>
       {ruas.map(({ rua, z }) => (
         <Billboard key={rua} position={[-1.8, 4.6, z]}>
-          <Text fontSize={0.55} color="#1f6b43" anchorX="center" anchorY="middle">
+          <Text fontSize={0.55} color="#d9b67f" anchorX="center" anchorY="middle">
             RUA {rua}
           </Text>
         </Billboard>
