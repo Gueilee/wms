@@ -222,7 +222,7 @@ function FluxoRecebimento({ onSair }: { onSair: () => void }) {
   return (
     <div className="h-full flex flex-col">
       <CabecalhoTela titulo={itemAtivo.nome} onVoltar={() => setItemAtivoId(null)} />
-      <div className="flex-1 flex flex-col justify-between px-3 py-3 min-h-0">
+      <div className="flex-1 overflow-y-auto flex flex-col gap-2 px-3 py-2">
         <div>
           <p className="text-[10px] text-white/50 uppercase tracking-wide mb-1">
             {etapaTarefa === "escanear" ? "Escaneie o item" : etapaTarefa === "quantidade" ? "Confira a quantidade" : "Confirme o endereço"}
@@ -236,15 +236,15 @@ function FluxoRecebimento({ onSair }: { onSair: () => void }) {
         {etapaTarefa === "escanear" && <BotaoEscanear onConcluir={() => setEtapaTarefa("quantidade")} />}
 
         {etapaTarefa === "quantidade" && (
-          <div className="flex flex-col gap-2">
-            <div className="rounded-lg bg-white/10 py-2.5 text-center text-2xl font-bold tabular">{quantidadeTexto || "0"}</div>
+          <div className="flex flex-col gap-1.5">
+            <div className="rounded-lg bg-white/10 py-1.5 text-center text-xl font-bold tabular">{quantidadeTexto || "0"}</div>
             <NumericKeypad
               onDigit={(d) => setQuantidadeTexto((q) => (q === "0" ? d : q + d).slice(0, 6))}
               onBackspace={() => setQuantidadeTexto((q) => q.slice(0, -1))}
             />
             <button
               onClick={() => setEtapaTarefa("enderecar")}
-              className="rounded-lg bg-brand-bronze-500 text-white text-sm font-bold py-2.5 cursor-pointer active:bg-brand-bronze-600"
+              className="rounded-lg bg-brand-bronze-500 text-white text-sm font-bold py-2 cursor-pointer active:bg-brand-bronze-600"
             >
               OK
             </button>
@@ -282,6 +282,8 @@ interface LinhaSeparacao {
   itemId: string;
   item?: Item;
   loc?: Localizacao;
+  quantidade: number;
+  quantidadeSeparada: number;
   restante: number;
   concluida: boolean;
 }
@@ -290,7 +292,15 @@ function linhasDoPedido(pedido: Pedido, itens: Item[], localizacoes: Localizacao
   const linhas = pedido.itens.map((it) => {
     const item = itens.find((i) => i.id === it.itemId);
     const loc = item?.localizacaoPrincipalId ? localizacoes.find((l) => l.id === item.localizacaoPrincipalId) : undefined;
-    return { itemId: it.itemId, item, loc, restante: it.quantidade - it.quantidadeSeparada, concluida: it.quantidadeSeparada >= it.quantidade };
+    return {
+      itemId: it.itemId,
+      item,
+      loc,
+      quantidade: it.quantidade,
+      quantidadeSeparada: it.quantidadeSeparada,
+      restante: it.quantidade - it.quantidadeSeparada,
+      concluida: it.quantidadeSeparada >= it.quantidade,
+    };
   });
   return linhas.sort((a, b) => (a.loc?.codigo ?? "zzz").localeCompare(b.loc?.codigo ?? "zzz"));
 }
@@ -395,36 +405,48 @@ function FluxoSeparacao({ onSair }: { onSair: () => void }) {
     );
   }
 
+  const pct = linhaAtiva.quantidade > 0 ? Math.round((linhaAtiva.quantidadeSeparada / linhaAtiva.quantidade) * 100) : 0;
+  const ultimaUnidade = linhaAtiva.restante <= 1;
+
   return (
     <div className="h-full flex flex-col">
       <CabecalhoTela titulo={`${pedido.numero}`} onVoltar={() => setItemAtivoId(null)} />
-      <div className="flex-1 flex flex-col justify-between px-3 py-3 min-h-0">
-        <div>
-          <p className="text-[10px] text-white/50 uppercase tracking-wide mb-1">Vá até a posição</p>
-          <div className="rounded-lg bg-white/10 py-3 flex flex-col items-center gap-1 mb-3">
-            <MapPin size={18} className="text-brand-bronze-300" />
-            <span className="text-xl font-bold tabular">{linhaAtiva.loc?.codigo ?? "sem posição"}</span>
-          </div>
-          <p className="text-sm font-bold leading-tight">{linhaAtiva.item.nome}</p>
-          <p className="text-[11px] text-white/60 mt-0.5">
-            Coletar: {formatarNumero(linhaAtiva.restante)} {linhaAtiva.item.unidadeMedida}
-          </p>
+      <div className="flex-1 overflow-y-auto flex flex-col gap-2 px-3 py-2">
+        <p className="text-[10px] text-white/50 uppercase tracking-wide">Vá até a posição</p>
+        <div className="rounded-lg bg-white/10 py-2 flex flex-col items-center gap-0.5">
+          <MapPin size={15} className="text-brand-bronze-300" />
+          <span className="text-lg font-bold tabular leading-tight">{linhaAtiva.loc?.codigo ?? "sem posição"}</span>
         </div>
 
-        <div className="relative">
+        <p className="text-sm font-bold leading-tight">{linhaAtiva.item.nome}</p>
+
+        <div className="flex items-center justify-between text-[11px] text-white/60">
+          <span>Bipe uma unidade por vez</span>
+          <span className="tabular font-semibold text-white">
+            {formatarNumero(linhaAtiva.quantidadeSeparada)}/{formatarNumero(linhaAtiva.quantidade)} {linhaAtiva.item.unidadeMedida}
+          </span>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+          <div className="h-full rounded-full bg-brand-bronze-500 transition-all" style={{ width: `${pct}%` }} />
+        </div>
+
+        <div className="relative mt-1">
           <button
             onClick={() =>
               disparar(() => {
                 if (pedido.status === "aberto") iniciarSeparacao(pedido.id);
-                confirmarPick(pedido.id, linhaAtiva.item!.id, linhaAtiva.restante);
-                // Usa a lista já calculada neste render (não o estado pós-ação, que
-                // só chega no próximo render) para decidir a próxima linha pendente.
-                const proxima = linhas.find((l) => !l.concluida && l.itemId !== linhaAtiva.itemId);
-                setItemAtivoId(proxima ? proxima.itemId : null);
+                confirmarPick(pedido.id, linhaAtiva.item!.id, 1);
+                if (ultimaUnidade) {
+                  // Última unidade desta linha — usa a lista já calculada neste
+                  // render (o estado pós-ação só chega no próximo render) para
+                  // decidir a próxima linha pendente.
+                  const proxima = linhas.find((l) => !l.concluida && l.itemId !== linhaAtiva.itemId);
+                  setItemAtivoId(proxima ? proxima.itemId : null);
+                }
               })
             }
             disabled={escaneando}
-            className="w-full rounded-lg bg-brand-bronze-500 text-white text-sm font-bold py-3.5 flex items-center justify-center gap-2 cursor-pointer active:bg-brand-bronze-600 disabled:opacity-80"
+            className="w-full rounded-lg bg-brand-bronze-500 text-white text-sm font-bold py-3 flex items-center justify-center gap-2 cursor-pointer active:bg-brand-bronze-600 disabled:opacity-80"
           >
             <ScanLine size={16} /> {escaneando ? "Lendo…" : "ESCANEAR ITEM"}
           </button>
