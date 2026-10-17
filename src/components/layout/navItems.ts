@@ -1,0 +1,25 @@
+import {
+  LayoutDashboard,
+  AlertTriangle,
+  Boxes,
+  Map,
+  PackageCheck,
+  ClipboardList,
+  Truck,
+  ScanLine,
+  Users,
+  Bell,
+} from "lucide-react";
+
+export const NAV_ITEMS = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/diagnostico", label: "Diagnóstico atual", icon: AlertTriangle },
+  { href: "/itens", label: "Cadastro de itens", icon: Boxes },
+  { href: "/enderecamento", label: "Endereçamento", icon: Map },
+  { href: "/recebimento", label: "Recebimento", icon: PackageCheck },
+  { href: "/separacao", label: "Separação & Packing", icon: ClipboardList },
+  { href: "/expedicao", label: "Expedição", icon: Truck },
+  { href: "/inventario", label: "Inventário cíclico", icon: ScanLine },
+  { href: "/clientes", label: "Clientes & personalização", icon: Users },
+  { href: "/alertas", label: "Alertas", icon: Bell },
+];

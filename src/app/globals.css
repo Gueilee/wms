@@ -1,26 +1,141 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Brand — extraído do logo real da Braspel */
+  --brand-bronze-50: #faf6ee;
+  --brand-bronze-100: #f2e7d2;
+  --brand-bronze-300: #d9b67f;
+  --brand-bronze-500: #b8905b;
+  --brand-bronze-600: #a17a46;
+  --brand-bronze-700: #82613a;
+
+  --brand-green-50: #eef5f0;
+  --brand-green-100: #cfe4d7;
+  --brand-green-300: #6fa989;
+  --brand-green-500: #1f6b43;
+  --brand-green-600: #17532f;
+  --brand-green-700: #123f24;
+  --brand-green-900: #0d2e1a;
+
+  /* Superfícies — modo claro (telas de gestão) */
+  --bg: #f6f7f5;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #eef1ee;
+  --border: #e1e5e0;
+  --text: #10140f;
+  --text-muted: #4b564c;
+  --text-faint: #7a847a;
+
+  /* Semânticas (válidas nos dois temas) */
+  --status-free: #94a3b8;
+  --status-occupied: var(--brand-bronze-500);
+  --status-blocked: #d97706;
+  --status-critical: #dc2626;
+  --status-ok: #16a34a;
+  --status-info: #2563eb;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+:root[data-theme="dark"],
+.collector-shell {
+  color-scheme: dark;
+
+  --bg: #0b0f0d;
+  --bg-elevated: #101512;
+  --surface: #141a17;
+  --surface-muted: #1b231f;
+  --border: #253029;
+  --text: #f1f5f1;
+  --text-muted: #aab4ab;
+  --text-faint: #71806f;
+
+  --status-free: #475569;
+  --status-occupied: var(--brand-bronze-300);
+  --status-blocked: #f59e0b;
+  --status-critical: #f87171;
+  --status-ok: #4ade80;
+  --status-info: #60a5fa;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+
+  --color-brand-bronze-50: var(--brand-bronze-50);
+  --color-brand-bronze-100: var(--brand-bronze-100);
+  --color-brand-bronze-300: var(--brand-bronze-300);
+  --color-brand-bronze-500: var(--brand-bronze-500);
+  --color-brand-bronze-600: var(--brand-bronze-600);
+  --color-brand-bronze-700: var(--brand-bronze-700);
+
+  --color-brand-green-50: var(--brand-green-50);
+  --color-brand-green-100: var(--brand-green-100);
+  --color-brand-green-300: var(--brand-green-300);
+  --color-brand-green-500: var(--brand-green-500);
+  --color-brand-green-600: var(--brand-green-600);
+  --color-brand-green-700: var(--brand-green-700);
+  --color-brand-green-900: var(--brand-green-900);
+
+  --color-status-free: var(--status-free);
+  --color-status-occupied: var(--status-occupied);
+  --color-status-blocked: var(--status-blocked);
+  --color-status-critical: var(--status-critical);
+  --color-status-ok: var(--status-ok);
+  --color-status-info: var(--status-info);
+
+  --font-sans: var(--font-plus-jakarta);
+  --font-body: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+::selection {
+  background: var(--brand-bronze-300);
+  color: var(--brand-green-900);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
