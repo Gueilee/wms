@@ -16,18 +16,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="h-dvh w-full overflow-hidden relative bg-[#f4f2f8] flex items-center lg:justify-end justify-center px-4">
+    <div className="h-dvh w-full overflow-hidden relative flex items-center lg:justify-end justify-center px-4">
       <Image
         src="/girou-login.png"
         alt="Girou WMS"
         fill
         priority
-        className="object-cover object-[30%_center] lg:object-[38%_center] -z-10"
+        className="object-cover object-[30%_center] lg:object-[38%_center]"
       />
       {/* Realça o card contra a foto do armazém sem esconder o logo à esquerda */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-transparent via-transparent to-black/10 lg:to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/10 lg:to-black/20" />
 
-      <div className="w-full max-w-sm lg:mr-12 xl:mr-20">
+      <div className="relative w-full max-w-sm lg:mr-12 xl:mr-20">
         <div className="w-full rounded-(--radius-lg) bg-white/95 backdrop-blur border border-black/5 p-7 flex flex-col items-center gap-6 shadow-2xl">
           <div className="text-center">
             <h1 className="font-display text-lg font-bold text-(--color-girou-ink)">
