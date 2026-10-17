@@ -4,14 +4,15 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 // Recorte da área de tela dentro da foto real do coletor (coletor.webp,
-// 241x321px) — calibrado visualmente. Se precisar reajustar após ver a
-// apresentação renderizada, mexa só nestes quatro números (percentuais da
+// 241x321px) — calibrado por análise de pixel da imagem original (não
+// visualmente): a tela ocupa x=[77.5,160] e y=[39,176.5] nos 241x321px.
+// Se precisar reajustar, mexa só nestes quatro números (percentuais da
 // imagem inteira, não do aparelho).
 const TELA = {
-  top: 10.5,
-  left: 21,
-  right: 21,
-  bottom: 50.5,
+  top: 12,
+  left: 32,
+  right: 33.5,
+  bottom: 45,
 };
 
 export function ColetorFrame({ children }: { children: ReactNode }) {
