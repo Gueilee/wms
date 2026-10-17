@@ -29,16 +29,9 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-sm lg:mr-12 xl:mr-20">
         <div className="w-full rounded-(--radius-lg) bg-white/95 backdrop-blur border border-black/5 p-7 flex flex-col items-center gap-6 shadow-2xl">
-          <div className="flex flex-col items-center text-center gap-3">
-            <Image src="/braspel-logo.png" alt="Braspel" width={64} height={64} className="object-contain" />
-            <div>
-              <h1 className="font-display text-lg font-bold text-(--color-girou-ink)">
-                Ambiente de demonstração
-              </h1>
-              <p className="text-sm text-text-muted mt-1">
-                Apresentação personalizada para <span className="font-semibold text-(--color-girou-ink)">Braspel Embalagens</span>
-              </p>
-            </div>
+          <div className="flex flex-col items-center text-center gap-4">
+            <Image src="/braspel-logo.png" alt="Braspel" width={176} height={176} className="object-contain" />
+            <h1 className="font-display text-lg font-bold text-(--color-girou-ink)">Ambiente de demonstração</h1>
           </div>
 
           <div className="w-full flex flex-col gap-3">
@@ -73,14 +66,6 @@ export default function LoginPage() {
                 <span className="block text-xs text-text-muted">Recebimento, separação, inventário com coletor</span>
               </span>
             </button>
-          </div>
-
-          <div className="flex items-center gap-1.5 pt-1 border-t border-black/5 w-full justify-center text-[11px] text-text-faint">
-            <span>Powered by</span>
-            <span className="font-display font-bold" style={{ color: "var(--girou-purple)" }}>
-              GIROU
-            </span>
-            <span>· dados fictícios para fins de demonstração</span>
           </div>
         </div>
       </div>
