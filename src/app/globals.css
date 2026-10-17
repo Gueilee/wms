@@ -19,6 +19,13 @@
   --brand-green-700: #123f24;
   --brand-green-900: #0d2e1a;
 
+  /* Girou — marca da plataforma (multi-tenant), usada no login e em pontos
+     institucionais; o restante do app usa a marca do tenant ativo (ex.: Braspel). */
+  --girou-purple: #5b2a9c;
+  --girou-purple-600: #6d31b8;
+  --girou-green: #1fb97a;
+  --girou-ink: #232834;
+
   /* Superfícies — modo claro (telas de gestão) */
   --bg: #f6f7f5;
   --bg-elevated: #ffffff;
@@ -94,6 +101,11 @@
   --color-status-critical: var(--status-critical);
   --color-status-ok: var(--status-ok);
   --color-status-info: var(--status-info);
+
+  --color-girou-purple: var(--girou-purple);
+  --color-girou-purple-600: var(--girou-purple-600);
+  --color-girou-green: var(--girou-green);
+  --color-girou-ink: var(--girou-ink);
 
   --font-sans: var(--font-plus-jakarta);
   --font-body: var(--font-inter);

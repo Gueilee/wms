@@ -20,7 +20,7 @@ export function Topbar() {
         <MobileNav />
         <div className="flex items-center gap-2">
           <Warehouse size={20} className="text-brand-bronze-500" />
-          <span className="font-display font-bold text-sm">Braspel WMS</span>
+          <span className="font-display font-bold text-sm">Braspel</span>
         </div>
       </div>
 

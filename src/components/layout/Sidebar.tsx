@@ -14,8 +14,8 @@ export function Sidebar() {
       <div className="flex items-center gap-3 px-5 h-16 border-b border-border">
         <Image src="/braspel-logo.png" alt="Braspel" width={32} height={32} className="object-contain" />
         <div className="leading-tight">
-          <p className="font-display font-bold text-sm text-text">Braspel WMS</p>
-          <p className="text-[11px] text-text-faint">Demonstração</p>
+          <p className="font-display font-bold text-sm text-text">Braspel</p>
+          <p className="text-[11px] text-text-faint">Workspace de demonstração</p>
         </div>
       </div>
 
@@ -39,6 +39,13 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="px-5 py-3 border-t border-border text-[10px] text-text-faint flex items-center gap-1.5">
+        Powered by
+        <span className="font-display font-bold" style={{ color: "var(--girou-purple)" }}>
+          GIROU
+        </span>
+      </div>
     </aside>
   );
 }

@@ -30,7 +30,7 @@ export function MobileNav() {
             <div className="flex items-center justify-between px-4 h-16 border-b border-border">
               <div className="flex items-center gap-2">
                 <Image src="/braspel-logo.png" alt="Braspel" width={28} height={28} />
-                <span className="font-display font-bold text-sm">Braspel WMS</span>
+                <span className="font-display font-bold text-sm">Braspel</span>
               </div>
               <button onClick={() => setAberto(false)} className="h-8 w-8 flex items-center justify-center cursor-pointer" aria-label="Fechar menu">
                 <X size={18} />

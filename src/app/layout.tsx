@@ -16,9 +16,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Braspel WMS",
+  title: "Girou WMS · Braspel",
   description:
-    "Demonstração do sistema de gestão de armazém inteligente para a Braspel Embalagens.",
+    "Girou — sistema de gestão de armazém inteligente, multi-tenant. Workspace de demonstração para a Braspel Embalagens.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

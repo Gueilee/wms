@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Warehouse, UserCog, HardHat } from "lucide-react";
+import { UserCog, HardHat } from "lucide-react";
 import { useWmsStore } from "@/store/useWmsStore";
 import type { PerfilUsuario } from "@/types";
 
@@ -16,48 +16,62 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-green-900 px-4">
-      <div className="w-full max-w-md rounded-(--radius-lg) bg-surface border border-border p-8 flex flex-col items-center gap-6 shadow-2xl">
-        <Image src="/braspel-logo.png" alt="Braspel" width={96} height={96} className="object-contain" />
+    <div className="min-h-screen bg-[#f4f2f8] flex flex-col">
+      <div className="relative w-full aspect-[1680/956] sm:aspect-[16/7]">
+        <Image src="/girou-login.png" alt="Girou WMS" fill priority className="object-cover" />
+      </div>
 
-        <div className="text-center">
-          <h1 className="font-display text-xl font-bold text-text">Braspel WMS</h1>
-          <p className="text-sm text-text-muted mt-1">
-            Sistema de gestão de armazém — ambiente de demonstração
-          </p>
-        </div>
+      <div className="flex-1 flex items-center justify-center px-4 py-10 -mt-10 sm:-mt-16 relative z-10">
+        <div className="w-full max-w-md rounded-(--radius-lg) bg-white border border-black/5 p-8 flex flex-col items-center gap-6 shadow-2xl">
+          <div className="text-center">
+            <h1 className="font-display text-lg font-bold text-(--color-girou-ink)">
+              Ambiente de demonstração
+            </h1>
+            <p className="text-sm text-text-muted mt-1">
+              Apresentação preparada para <span className="font-semibold text-(--color-girou-ink)">Braspel Embalagens</span>
+            </p>
+          </div>
 
-        <div className="w-full flex flex-col gap-3">
-          <button
-            onClick={() => entrar("gestor")}
-            className="flex items-center gap-3 w-full rounded-(--radius-md) border border-border bg-bg-elevated px-4 py-3.5 text-left hover:border-brand-bronze-500 transition-colors cursor-pointer"
-          >
-            <span className="flex items-center justify-center h-10 w-10 rounded-full bg-brand-green-700 text-white shrink-0">
-              <UserCog size={18} />
-            </span>
-            <span>
-              <span className="block text-sm font-semibold text-text">Entrar como Gestor</span>
-              <span className="block text-xs text-text-muted">Dashboard, KPIs, curva ABC e relatórios</span>
-            </span>
-          </button>
+          <div className="w-full flex flex-col gap-3">
+            <button
+              onClick={() => entrar("gestor")}
+              className="flex items-center gap-3 w-full rounded-(--radius-md) border border-black/10 bg-white px-4 py-3.5 text-left hover:border-(--color-girou-purple) transition-colors cursor-pointer"
+            >
+              <span
+                className="flex items-center justify-center h-10 w-10 rounded-full text-white shrink-0"
+                style={{ background: "var(--girou-purple)" }}
+              >
+                <UserCog size={18} />
+              </span>
+              <span>
+                <span className="block text-sm font-semibold text-(--color-girou-ink)">Entrar como Gestor</span>
+                <span className="block text-xs text-text-muted">Dashboard, KPIs, curva ABC e relatórios</span>
+              </span>
+            </button>
 
-          <button
-            onClick={() => entrar("operador")}
-            className="flex items-center gap-3 w-full rounded-(--radius-md) border border-border bg-bg-elevated px-4 py-3.5 text-left hover:border-brand-bronze-500 transition-colors cursor-pointer"
-          >
-            <span className="flex items-center justify-center h-10 w-10 rounded-full bg-brand-bronze-600 text-white shrink-0">
-              <HardHat size={18} />
-            </span>
-            <span>
-              <span className="block text-sm font-semibold text-text">Entrar como Operador</span>
-              <span className="block text-xs text-text-muted">Recebimento, separação, inventário com coletor</span>
-            </span>
-          </button>
-        </div>
+            <button
+              onClick={() => entrar("operador")}
+              className="flex items-center gap-3 w-full rounded-(--radius-md) border border-black/10 bg-white px-4 py-3.5 text-left hover:border-(--color-girou-green) transition-colors cursor-pointer"
+            >
+              <span
+                className="flex items-center justify-center h-10 w-10 rounded-full text-white shrink-0"
+                style={{ background: "var(--girou-green)" }}
+              >
+                <HardHat size={18} />
+              </span>
+              <span>
+                <span className="block text-sm font-semibold text-(--color-girou-ink)">Entrar como Operador</span>
+                <span className="block text-xs text-text-muted">Recebimento, separação, inventário com coletor</span>
+              </span>
+            </button>
+          </div>
 
-        <div className="flex items-center gap-1.5 text-[11px] text-text-faint mt-2">
-          <Warehouse size={13} />
-          Dados fictícios para fins de demonstração comercial
+          <div className="flex items-center gap-2 pt-1 border-t border-black/5 w-full justify-center">
+            <Image src="/braspel-logo.png" alt="Braspel" width={20} height={20} className="object-contain opacity-80" />
+            <span className="text-[11px] text-text-faint">
+              Workspace personalizado para Braspel · dados fictícios para fins de demonstração
+            </span>
+          </div>
         </div>
       </div>
     </div>
