@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ClipboardList, ScanBarcode, PackageOpen, Tag } from "lucide-react";
+import { ClipboardList, ScanBarcode, PackageOpen, Tag, MapPin } from "lucide-react";
 import { useWmsStore } from "@/store/useWmsStore";
 import { PageHeader, Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -12,7 +12,7 @@ import { gerarConteudoGs1 } from "@/lib/gs1";
 import { formatarNumero } from "@/lib/format";
 
 export default function SeparacaoPage() {
-  const { pedidos, itens, iniciarSeparacao, confirmarPick, embalarPedido } = useWmsStore();
+  const { pedidos, itens, localizacoes, iniciarSeparacao, confirmarPick, embalarPedido } = useWmsStore();
   const [etiquetaAberta, setEtiquetaAberta] = useState<string | null>(null);
 
   const emAndamento = pedidos.filter((p) => p.status !== "expedido");
@@ -61,32 +61,49 @@ export default function SeparacaoPage() {
                 {(pedido.status === "separando" || pedido.status === "separado") && (
                   <>
                     <ProgressBar percentual={pct} tom={pct === 100 ? "ok" : "bronze"} />
+                    <p className="text-[11px] text-text-faint -mt-2">
+                      Lista ordenada pela posição de coleta — a rota de menor deslocamento dentro do armazém.
+                    </p>
                     <div className="flex flex-col divide-y divide-border">
-                      {pedido.itens.map((linha) => {
-                        const item = itens.find((i) => i.id === linha.itemId);
-                        if (!item) return null;
-                        const completo = linha.quantidadeSeparada >= linha.quantidade;
-                        return (
-                          <div key={linha.itemId} className="py-2.5 flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm text-text">{item.nome}</p>
-                              <p className="text-xs text-text-faint tabular">
-                                {formatarNumero(linha.quantidadeSeparada)} / {formatarNumero(linha.quantidade)} {item.unidadeMedida}
-                              </p>
+                      {[...pedido.itens]
+                        .map((linha) => {
+                          const item = itens.find((i) => i.id === linha.itemId);
+                          const loc = item?.localizacaoPrincipalId
+                            ? localizacoes.find((l) => l.id === item.localizacaoPrincipalId)
+                            : undefined;
+                          return { linha, item, loc };
+                        })
+                        .sort((a, b) => (a.loc?.codigo ?? "zzz").localeCompare(b.loc?.codigo ?? "zzz"))
+                        .map(({ linha, item, loc }) => {
+                          if (!item) return null;
+                          const completo = linha.quantidadeSeparada >= linha.quantidade;
+                          return (
+                            <div key={linha.itemId} className="py-2.5 flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <Badge tom={loc ? "bronze" : "neutro"} className="tabular shrink-0">
+                                  <MapPin size={12} />
+                                  {loc?.codigo ?? "sem posição"}
+                                </Badge>
+                                <div>
+                                  <p className="text-sm text-text">{item.nome}</p>
+                                  <p className="text-xs text-text-faint tabular">
+                                    {formatarNumero(linha.quantidadeSeparada)} / {formatarNumero(linha.quantidade)} {item.unidadeMedida}
+                                  </p>
+                                </div>
+                              </div>
+                              {completo ? (
+                                <Badge tom="ok">Separado</Badge>
+                              ) : (
+                                <button
+                                  onClick={() => confirmarPick(pedido.id, item.id, linha.quantidade - linha.quantidadeSeparada)}
+                                  className="rounded-(--radius-md) border border-brand-bronze-500 text-brand-bronze-600 text-xs font-semibold px-3 py-1.5 cursor-pointer hover:bg-brand-bronze-50 transition-colors flex items-center gap-1.5 shrink-0"
+                                >
+                                  <ScanBarcode size={13} /> Escanear item
+                                </button>
+                              )}
                             </div>
-                            {completo ? (
-                              <Badge tom="ok">Separado</Badge>
-                            ) : (
-                              <button
-                                onClick={() => confirmarPick(pedido.id, item.id, linha.quantidade - linha.quantidadeSeparada)}
-                                className="rounded-(--radius-md) border border-brand-bronze-500 text-brand-bronze-600 text-xs font-semibold px-3 py-1.5 cursor-pointer hover:bg-brand-bronze-50 transition-colors flex items-center gap-1.5"
-                              >
-                                <ScanBarcode size={13} /> Escanear item
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </div>
                   </>
                 )}
