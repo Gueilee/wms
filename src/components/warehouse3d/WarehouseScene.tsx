@@ -86,7 +86,7 @@ export function WarehouseScene({
         <Environment preset="city" background={false} environmentIntensity={0.35} />
 
         <Floor largura={largura} profundidade={profundidade} />
-        {modo === "movimentacao" && <FloorHeatmap localizacoes={localizacoes} />}
+        {modo === "movimentacao" && <FloorHeatmap localizacoes={localizacoes} opacidade={opacidade} />}
         <RackFrames localizacoes={localizacoes} />
         <AisleLabels localizacoes={localizacoes} />
         <PalletInstances

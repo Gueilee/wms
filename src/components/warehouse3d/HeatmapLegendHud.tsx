@@ -172,10 +172,10 @@ export function HeatmapLegendHud({
         </div>
       </div>
 
-      <div className="pointer-events-auto self-end rounded-(--radius-md) bg-(--girou-ink)/90 backdrop-blur border border-white/10 p-3 w-48">
-        <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">Top ruas</span>
+      <div className="pointer-events-auto self-end rounded-(--radius-md) bg-(--girou-ink)/90 backdrop-blur border border-white/10 p-3 w-48 max-h-[70vh] overflow-y-auto">
+        <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">Ruas (todas)</span>
         <div className="flex flex-col gap-1.5 mt-2">
-          {ranking.slice(0, 5).map((r, i) => (
+          {ranking.map((r, i) => (
             <div key={r.rua} className="flex items-center justify-between text-xs text-white/80">
               <span>
                 {i + 1}. Rua {r.rua}

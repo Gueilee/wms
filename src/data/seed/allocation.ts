@@ -7,17 +7,22 @@ import { mulberry32, randInt } from "./rng";
 // chão, ruas da frente), classe C/personalizados nas posições mais distantes.
 // Deliberadamente deixa ~40-45% das posições livres para demonstrar sugestão
 // de putaway durante o recebimento.
+//
+// O ranqueamento usa um peso decrescente por rua (A=1.0 ... I=0.35) dividindo
+// a posição "dentro da rua" — isso intercala as ruas em vez de encher a Rua A
+// a 100% antes de tocar a Rua B. Resultado: um gradiente de ocupação suave
+// front→fundo (sem empates artificiais em 100%), em vez de um corte abrupto
+// "cheio/vazio" que não parece um armazém real.
 export function alocarItens(itens: Item[], locais: Localizacao[]) {
   const rand = mulberry32(190485);
   const alocaveis = itens.filter((i) => i.categoria !== "Ferramental");
 
-  const ranqueadas = [...locais].sort((a, b) => {
-    const ordemRua = RUAS_ORDEM.indexOf(a.rua) - RUAS_ORDEM.indexOf(b.rua);
-    if (ordemRua !== 0) return ordemRua;
-    const alturaDiff = Number(a.altura) - Number(b.altura);
-    if (alturaDiff !== 0) return alturaDiff;
-    return Number(a.posicao) - Number(b.posicao);
-  });
+  const pesoRua = (rua: string) => 1 - (RUAS_ORDEM.indexOf(rua) / (RUAS_ORDEM.length - 1)) * 0.65;
+  const scorePosicao = (l: Localizacao) => {
+    const dentroDaRua = Number(l.altura) * 20 + Number(l.posicao);
+    return dentroDaRua / pesoRua(l.rua);
+  };
+  const ranqueadas = [...locais].sort((a, b) => scorePosicao(a) - scorePosicao(b));
 
   const porClasse = {
     A: alocaveis.filter((i) => i.classeAbc === "A"),
