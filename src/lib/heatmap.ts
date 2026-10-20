@@ -98,3 +98,29 @@ export function corPorModo(modo: ModoHeatmap, loc: Localizacao, item: Item | und
   if (modo === "movimentacao") return corPorMovimentacao(loc.indiceMovimentacao ?? 0);
   return corPorAtividade(intensidadeAtiv);
 }
+
+// O que cada cor significa em cada modo — única fonte de verdade para a
+// legenda exibida no HUD, sempre coerente com as funções corPor* acima.
+export const LEGENDA_HEATMAP: Record<ModoHeatmap, { cor: string; label: string }[]> = {
+  abc: [
+    { cor: COR_ABC.A, label: "Classe A" },
+    { cor: COR_ABC.B, label: "Classe B" },
+    { cor: COR_ABC.C, label: "Classe C" },
+    { cor: COR_OCUPACAO.livre, label: "Livre" },
+    { cor: COR_OCUPACAO.bloqueado, label: "Bloqueado" },
+  ],
+  ocupacao: [
+    { cor: COR_OCUPACAO.ocupado, label: "Ocupado" },
+    { cor: COR_OCUPACAO.livre, label: "Livre" },
+    { cor: COR_OCUPACAO.bloqueado, label: "Bloqueado" },
+  ],
+  atividade: [
+    { cor: COR_BASE_ATIVIDADE, label: "Sem atividade" },
+    { cor: COR_PICO_ATIVIDADE, label: "Atividade agora" },
+  ],
+  movimentacao: [
+    { cor: COR_MOVIMENTACAO_FRIA, label: "Baixa movimentação" },
+    { cor: COR_MOVIMENTACAO_MORNA, label: "Média" },
+    { cor: COR_MOVIMENTACAO_QUENTE, label: "Alta movimentação" },
+  ],
+};

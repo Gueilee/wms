@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import clsx from "clsx";
-import { Box, Expand, Flame, LayoutGrid, Minimize2, Move3d, Radio } from "lucide-react";
+import { Box, ChevronDown, ChevronUp, Expand, Flame, LayoutGrid, Minimize2, Move3d, Radio } from "lucide-react";
 import type { Localizacao, MovimentoEstoque } from "@/types";
 import { RUAS_ORDEM } from "@/data/seed/layout";
-import { mapaUltimaAtividade, intensidadeAtividade, type ModoHeatmap } from "@/lib/heatmap";
+import { mapaUltimaAtividade, intensidadeAtividade, LEGENDA_HEATMAP, type ModoHeatmap } from "@/lib/heatmap";
 import { useAgora } from "@/hooks/useAgora";
 import type { PresetCamera } from "./CameraRig";
 
@@ -52,6 +52,8 @@ export function HeatmapLegendHud({
   onTelaCheia,
 }: HudProps) {
   const agora = useAgora(1000);
+  const [modoAberto, setModoAberto] = useState(false);
+  const labelModoAtual = MODOS.find((m) => m.id === modo)?.label ?? "";
 
   const ranking = useMemo(() => {
     const ultimaAtividade = mapaUltimaAtividade(movimentos);
@@ -115,35 +117,58 @@ export function HeatmapLegendHud({
           )}
         </div>
 
-        <div className="rounded-(--radius-md) bg-(--girou-ink)/90 backdrop-blur border border-white/10 p-3 flex flex-col gap-2 min-w-[180px]">
-          <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">Modo do heatmap</span>
-          <div className="flex flex-col gap-1">
-            {MODOS.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => onModo(m.id)}
-                className={clsx(
-                  "flex items-center gap-1.5 rounded-(--radius-sm) px-2.5 py-1.5 text-xs font-medium text-left transition-colors cursor-pointer",
-                  modo === m.id ? "bg-brand-bronze-500 text-white" : "bg-white/5 text-white/70 hover:bg-white/10"
-                )}
-              >
-                {m.id === "atividade" && <Radio size={12} />}
-                {m.id === "movimentacao" && <Flame size={12} />}
-                {m.label}
-              </button>
-            ))}
-          </div>
-          <label className="text-[10px] text-white/50 flex flex-col gap-1 mt-1">
-            Opacidade do heatmap
-            <input
-              type="range"
-              min={20}
-              max={100}
-              value={Math.round(opacidade * 100)}
-              onChange={(e) => onOpacidade(Number(e.target.value) / 100)}
-              className="accent-[var(--girou-purple)]"
-            />
-          </label>
+        <div className="rounded-(--radius-md) bg-(--girou-ink)/90 backdrop-blur border border-white/10 p-3 flex flex-col gap-2 min-w-[200px]">
+          <button
+            onClick={() => setModoAberto((v) => !v)}
+            className="flex items-center justify-between gap-3 cursor-pointer"
+          >
+            <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">
+              Modo do heatmap {!modoAberto && <span className="text-white/80 normal-case">· {labelModoAtual}</span>}
+            </span>
+            {modoAberto ? <ChevronUp size={13} className="text-white/50" /> : <ChevronDown size={13} className="text-white/50" />}
+          </button>
+
+          {modoAberto && (
+            <>
+              <div className="flex flex-col gap-1">
+                {MODOS.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => onModo(m.id)}
+                    className={clsx(
+                      "flex items-center gap-1.5 rounded-(--radius-sm) px-2.5 py-1.5 text-xs font-medium text-left transition-colors cursor-pointer",
+                      modo === m.id ? "bg-brand-bronze-500 text-white" : "bg-white/5 text-white/70 hover:bg-white/10"
+                    )}
+                  >
+                    {m.id === "atividade" && <Radio size={12} />}
+                    {m.id === "movimentacao" && <Flame size={12} />}
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+              <label className="text-[10px] text-white/50 flex flex-col gap-1 mt-1">
+                Opacidade do heatmap
+                <input
+                  type="range"
+                  min={20}
+                  max={100}
+                  value={Math.round(opacidade * 100)}
+                  onChange={(e) => onOpacidade(Number(e.target.value) / 100)}
+                  className="accent-[var(--girou-purple)]"
+                />
+              </label>
+
+              <div className="flex flex-col gap-1 border-t border-white/10 pt-2 mt-1">
+                <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">O que cada cor significa</span>
+                {LEGENDA_HEATMAP[modo].map((l) => (
+                  <div key={l.label} className="flex items-center gap-2 text-[11px] text-white/80">
+                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: l.cor }} />
+                    {l.label}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
