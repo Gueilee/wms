@@ -157,19 +157,22 @@ export function HeatmapLegendHud({
                   className="accent-[var(--girou-purple)]"
                 />
               </label>
-
-              <div className="flex flex-col gap-1 border-t border-white/10 pt-2 mt-1">
-                <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide">O que cada cor significa</span>
-                {LEGENDA_HEATMAP[modo].map((l) => (
-                  <div key={l.label} className="flex items-center gap-2 text-[11px] text-white/80">
-                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: l.cor }} />
-                    {l.label}
-                  </div>
-                ))}
-              </div>
             </>
           )}
         </div>
+      </div>
+
+      {/* Legenda de cores — sempre visível, independente do painel acima estar
+          aberto ou fechado. Numa apresentação ninguém deve precisar clicar
+          pra entender o que uma cor significa. */}
+      <div className="pointer-events-auto absolute bottom-4 left-4 rounded-(--radius-md) bg-(--girou-ink)/90 backdrop-blur border border-white/10 px-3 py-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 max-w-[calc(100%-2rem)]">
+        <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wide shrink-0">{labelModoAtual}:</span>
+        {LEGENDA_HEATMAP[modo].map((l) => (
+          <div key={l.label} className="flex items-center gap-1.5 text-[11px] text-white/80 shrink-0">
+            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: l.cor }} />
+            {l.label}
+          </div>
+        ))}
       </div>
 
       <div className="pointer-events-auto self-end rounded-(--radius-md) bg-(--girou-ink)/90 backdrop-blur border border-white/10 p-3 w-48 max-h-[70vh] overflow-y-auto">
