@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Sparkles, X, Send, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { X, Send, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import { useWmsStore } from "@/store/useWmsStore";
 import { useAlertasAtivos, calcularOcupacao } from "@/lib/selectors";
@@ -13,6 +14,14 @@ const SUGESTOES = [
   "Qual lote de matéria-prima vence primeiro?",
   "Quantas posições do armazém estão livres agora?",
 ];
+
+function AvatarGirou({ size }: { size: number }) {
+  return (
+    <div className="relative shrink-0 rounded-full overflow-hidden" style={{ width: size, height: size }}>
+      <Image src="/avatar-girou.png" alt="Girou" fill sizes={`${size}px`} className="object-cover" />
+    </div>
+  );
+}
 
 export function CopilotWidget() {
   const [aberto, setAberto] = useState(false);
@@ -73,7 +82,7 @@ export function CopilotWidget() {
       adicionarMensagemCopiloto({
         id: `msg-${crypto.randomUUID()}`,
         role: "assistant",
-        content: "Não consegui me conectar ao serviço de IA agora.",
+        content: "Não consegui me conectar agora. Tenta de novo?",
       });
     } finally {
       setCarregando(false);
@@ -86,31 +95,40 @@ export function CopilotWidget() {
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-brand-green-700 text-white px-4 py-3.5 shadow-lg shadow-black/20 hover:bg-brand-green-600 transition-colors cursor-pointer"
+        aria-label="Falar com o Girou"
+        className="fixed bottom-5 right-5 z-40 h-16 w-16 rounded-full shadow-lg shadow-black/30 ring-2 ring-white/40 cursor-pointer hover:scale-105 transition-transform overflow-hidden"
       >
-        <Sparkles size={18} />
-        <span className="text-sm font-semibold hidden sm:inline">Copiloto IA</span>
+        <Image src="/avatar-girou.png" alt="Girou" fill sizes="64px" className="object-cover" />
+        <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-white" />
       </button>
 
       {aberto && (
         <div className="fixed bottom-24 right-5 z-40 w-[calc(100vw-2.5rem)] sm:w-96 h-[32rem] max-h-[70vh] rounded-(--radius-lg) border border-border bg-surface shadow-2xl flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between px-4 h-12 border-b border-border bg-brand-green-700 text-white shrink-0">
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Sparkles size={16} />
-              Copiloto de estoque
+          <div className="flex items-center gap-2.5 px-4 h-14 border-b border-border bg-brand-green-700 text-white shrink-0">
+            <div className="relative shrink-0 rounded-full overflow-hidden ring-2 ring-white/30 h-9 w-9">
+              <Image src="/avatar-girou.png" alt="Girou" fill sizes="36px" className="object-cover" />
             </div>
-            <button onClick={() => setAberto(false)} className="cursor-pointer" aria-label="Fechar copiloto">
+            <div className="leading-tight">
+              <p className="text-sm font-bold">Girou</p>
+              <p className="text-[10px] text-white/70 flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Assistente virtual · online
+              </p>
+            </div>
+            <button onClick={() => setAberto(false)} className="cursor-pointer ml-auto" aria-label="Fechar">
               <X size={16} />
             </button>
           </div>
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 text-sm">
             {mensagensCopiloto.length === 0 && (
-              <div className="flex flex-col gap-2">
-                <p className="text-text-muted">
-                  Pergunte qualquer coisa sobre o estoque, pedidos ou ocupação do armazém — eu respondo com base nos
-                  dados ao vivo desta demonstração.
-                </p>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-2">
+                  <AvatarGirou size={26} />
+                  <p className="text-text-muted bg-surface-muted rounded-(--radius-md) px-3 py-2">
+                    Oi, eu sou o Girou! Pergunte qualquer coisa sobre o estoque, pedidos ou ocupação do armazém —
+                    respondo com base nos dados ao vivo desta demonstração.
+                  </p>
+                </div>
                 {SUGESTOES.map((s) => (
                   <button
                     key={s}
@@ -123,19 +141,22 @@ export function CopilotWidget() {
               </div>
             )}
             {mensagensCopiloto.map((m) => (
-              <div
-                key={m.id}
-                className={clsx(
-                  "max-w-[85%] rounded-(--radius-md) px-3 py-2 whitespace-pre-wrap",
-                  m.role === "user" ? "self-end bg-brand-bronze-500 text-white" : "self-start bg-surface-muted text-text"
-                )}
-              >
-                {m.content}
+              <div key={m.id} className={clsx("flex items-start gap-2", m.role === "user" && "flex-row-reverse")}>
+                {m.role === "assistant" && <AvatarGirou size={22} />}
+                <div
+                  className={clsx(
+                    "max-w-[80%] rounded-(--radius-md) px-3 py-2 whitespace-pre-wrap",
+                    m.role === "user" ? "bg-brand-bronze-500 text-white" : "bg-surface-muted text-text"
+                  )}
+                >
+                  {m.content}
+                </div>
               </div>
             ))}
             {carregando && (
-              <div className="self-start flex items-center gap-2 text-text-faint text-xs">
-                <Loader2 size={14} className="animate-spin" /> pensando…
+              <div className="flex items-center gap-2 text-text-faint text-xs">
+                <AvatarGirou size={22} />
+                <Loader2 size={14} className="animate-spin" /> digitando…
               </div>
             )}
           </div>
@@ -150,7 +171,7 @@ export function CopilotWidget() {
             <input
               value={pergunta}
               onChange={(e) => setPergunta(e.target.value)}
-              placeholder="Pergunte sobre o estoque…"
+              placeholder="Pergunte ao Girou…"
               className="flex-1 rounded-(--radius-md) border border-border bg-bg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-bronze-500"
             />
             <button
