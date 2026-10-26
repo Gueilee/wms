@@ -18,7 +18,7 @@ const SUGESTOES = [
 function AvatarGirou({ size }: { size: number }) {
   return (
     <div className="relative shrink-0 rounded-full overflow-hidden" style={{ width: size, height: size }}>
-      <Image src="/avatar-girou.png" alt="Girou" fill sizes={`${size}px`} className="object-cover" />
+      <Image src="/avatar-girou.png" alt="GIRO" fill sizes={`${size}px`} className="object-cover" />
     </div>
   );
 }
@@ -95,10 +95,10 @@ export function CopilotWidget() {
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
-        aria-label="Falar com o Girou"
+        aria-label="Falar com o GIRO"
         className="fixed bottom-5 right-5 z-40 h-16 w-16 rounded-full shadow-lg shadow-black/30 ring-2 ring-white/40 cursor-pointer hover:scale-105 transition-transform overflow-hidden"
       >
-        <Image src="/avatar-girou.png" alt="Girou" fill sizes="64px" className="object-cover" />
+        <Image src="/avatar-girou.png" alt="GIRO" fill sizes="64px" className="object-cover" />
         <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-white" />
       </button>
 
@@ -106,10 +106,10 @@ export function CopilotWidget() {
         <div className="fixed bottom-24 right-5 z-40 w-[calc(100vw-2.5rem)] sm:w-96 h-[32rem] max-h-[70vh] rounded-(--radius-lg) border border-border bg-surface shadow-2xl flex flex-col overflow-hidden">
           <div className="flex items-center gap-2.5 px-4 h-14 border-b border-border bg-brand-green-700 text-white shrink-0">
             <div className="relative shrink-0 rounded-full overflow-hidden ring-2 ring-white/30 h-9 w-9">
-              <Image src="/avatar-girou.png" alt="Girou" fill sizes="36px" className="object-cover" />
+              <Image src="/avatar-girou.png" alt="GIRO" fill sizes="36px" className="object-cover" />
             </div>
             <div className="leading-tight">
-              <p className="text-sm font-bold">Girou</p>
+              <p className="text-sm font-bold">GIRO</p>
               <p className="text-[10px] text-white/70 flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Assistente virtual · online
               </p>
@@ -125,7 +125,7 @@ export function CopilotWidget() {
                 <div className="flex items-start gap-2">
                   <AvatarGirou size={26} />
                   <p className="text-text-muted bg-surface-muted rounded-(--radius-md) px-3 py-2">
-                    Oi, eu sou o Girou! Pergunte qualquer coisa sobre o estoque, pedidos ou ocupação do armazém —
+                    Oi, eu sou o GIRO! Pergunte qualquer coisa sobre o estoque, pedidos ou ocupação do armazém —
                     respondo com base nos dados ao vivo desta demonstração.
                   </p>
                 </div>
@@ -171,7 +171,7 @@ export function CopilotWidget() {
             <input
               value={pergunta}
               onChange={(e) => setPergunta(e.target.value)}
-              placeholder="Pergunte ao Girou…"
+              placeholder="Pergunte ao GIRO…"
               className="flex-1 rounded-(--radius-md) border border-border bg-bg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-bronze-500"
             />
             <button
