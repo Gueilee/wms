@@ -12,9 +12,9 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex lg:w-64 shrink-0 flex-col border-r border-border bg-bg-elevated h-screen sticky top-0">
       <div className="flex items-center gap-3 px-5 h-16 border-b border-border">
-        <Image src="/braspel-logo.png" alt="Braspel" width={32} height={32} className="object-contain" />
+        <Image src="/nexys-mark.png" alt="Nexys" width={32} height={32} className="object-contain" />
         <div className="leading-tight">
-          <p className="font-display font-bold text-sm text-text">Braspel</p>
+          <p className="font-display font-bold text-sm text-text">Girou</p>
           <p className="text-[11px] text-text-faint">Workspace de demonstração</p>
         </div>
       </div>

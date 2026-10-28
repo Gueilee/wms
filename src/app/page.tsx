@@ -30,7 +30,9 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm lg:mr-12 xl:mr-20">
         <div className="w-full rounded-(--radius-lg) bg-white/95 backdrop-blur border border-black/5 p-7 flex flex-col items-center gap-6 shadow-2xl">
           <div className="flex flex-col items-center text-center gap-4">
-            <Image src="/braspel-logo.png" alt="Braspel" width={176} height={176} className="object-contain" />
+            <div className="rounded-(--radius-lg) bg-black px-5 py-4">
+              <Image src="/nexys-logo.png" alt="Nexys" width={220} height={144} className="object-contain" />
+            </div>
             <h1 className="font-display text-lg font-bold text-(--color-girou-ink)">Ambiente de demonstração</h1>
           </div>
 
